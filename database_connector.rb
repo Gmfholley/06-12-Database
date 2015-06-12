@@ -23,7 +23,7 @@ module DatabaseConnector
     # returns nothing
     def create_table(field_names_and_types)
       stringify = create_string_of_field_names_and_types(field_names_and_types)
-      CONNECTION.execute("CREATE TABLE IF NOT EXISTS #{table} (#{stringify});")
+      CONNECTION.execute("CREATE TABLE IF NOT EXISTS #{self.to_s.pluralize} (#{stringify});")
     end
   
     # returns a stringified version of this table, optimizied for SQL statements
@@ -46,18 +46,19 @@ module DatabaseConnector
       field_names_and_types.join(" ")
     end
   
-    # creates a new record in the table
-    #
-    # records                 - multi-dimensional Array of column names, each row representing a new record
-    #
-    # returns nothing
-    def create_new_records(records)
-    ####
-      (0..records.length - 1).each do |x|
-        record_as_string = add_quotes_to_string(records[x].join("', '"))
-        CONNECTION.execute("INSERT INTO #{table} (#{database_field_names}) VALUES (#{record_as_string});")
-      end
-    end
+    ####### NOTE: THIS METHOD DOE SNOT WORK BECAUSE YOU CANNOT GET THE FIELDNAMES
+    # # creates a new record in the table
+    # #
+    # # records                 - multi-dimensional Array of column names, each row representing a new record
+    # #
+    # # returns nothing
+    # def create_new_records(records)
+    # ####
+    #   (0..records.length - 1).each do |x|
+    #     record_as_string = add_quotes_to_string(records[x].join("', '"))
+    #     CONNECTION.execute("INSERT INTO #{self.to_s.pluralize} (#{string_field_names}) VALUES (#{record_as_string});")
+    #   end
+    # end
     
     # deletes the record matching the primary key
     #
@@ -65,24 +66,24 @@ module DatabaseConnector
     #
     # returns nothing
     def delete_record(key_id)
-      CONNECTION.execute("DELETE FROM #{table} WHERE id = #{primary_key};")
+      CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE id = #{key_id};")
     end
 
     # returns all records in database
     #
     # returns Array of a Hash of the resulting records
     def all_records
-      CONNECTION.execute("SELECT #{database_field_names} FROM #{table};")
+      CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize};")
     end
     
     # returns the result of an array where field_name = field_value
     #
     # returns Array of a Hash of the resulting records
     def records_matching_this(field_name, field_value)
-      if field_names.length > 1
-        field_names = field_names.join(", ")
+      if field_value.is_a? String
+        field_value = "'#{field_value}'"
       end
-      CONNECTION.execute("SELECT #{database_field_names} FROM #{table} WHERE #{field_name} == #{field_value};")
+      CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE #{field_name} == #{field_value};")
     end
     
   end
@@ -113,10 +114,18 @@ module DatabaseConnector
   def database_field_names
     attributes = []
     instance_variables.each do |i|
-      attributes << i.to_s.delete("@")
+      unless i == "@id".to_sym
+        attributes << i.to_s.delete("@")
+      end
     end
-    attributes.join(', ')
+    attributes
   end
+  
+  #string of field names
+  def string_field_names
+    database_field_names.join(', ')
+  end
+  
   
   # returns an Array of this object's parameters
   #
@@ -124,7 +133,9 @@ module DatabaseConnector
   def self_values
     self_values = []
     database_field_names.each do |params|
-      self_values << self.send(params)
+      unless params == "id"
+        self_values << self.send(params)
+      end
     end
     self_values
   end
@@ -139,8 +150,8 @@ module DatabaseConnector
       else
         joiner = ", "
       end
-      if param.is_a?s Integer
-        stringify += joiner + param
+      if param.is_a? Integer
+        stringify += joiner + param.to_s
       elsif param.is_a? String
         stringify += joiner + "'#{param}'"
       else
@@ -158,7 +169,7 @@ module DatabaseConnector
   #
   # returns nothing
   def save_record
-    CONNECTION.execute("INSERT INTO #{table} (#{col_names}) VALUES (#{stringify_self});")
+    CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
     @id = CONNECTION.last_insert_row_id
   end
 
