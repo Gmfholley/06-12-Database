@@ -5,37 +5,23 @@ require 'active_support/inflector.rb'
 
 module DatabaseConnector
   
-  module ClassDatabaseConnector
-    # returns the table name - the plural of the object's class
-    def table
-      self.class.to_s.pluralize
-    end
-  
-    # returns a String of the database_field_names for SQL
-    def database_field_names
-      attributes = []
-      self.instance_variables.each do |i|
-        attributes << i.to_s.delete("@")
-      end
-      attributes.join(', ')
-    end
-  
+  module ClassDatabaseConnector    
     # connects to the database
     #
     # database_name    - String representing the database name (and relative path)
     #
     # returns Object representing the database CONNECTION 
-    def connection_to_database(database_name)
-      CONNECTION = SQLite3::Database.new(database_name)
-      CONNECTION.results_as_hash = true
-    end
+    # def connection_to_database(database_name)
+    #   CONNECTION = SQLite3::Database.new(database_name)
+    #   CONNECTION.results_as_hash = true
+    # end
 
     # creates a table with field names and types as provided
     #
     # field_names_and_types   - Array of the column names
     #
     # returns nothing
-    def create_table(field_names_and_types: field_names_and_types)
+    def create_table(field_names_and_types)
       stringify = create_string_of_field_names_and_types(field_names_and_types)
       CONNECTION.execute("CREATE TABLE IF NOT EXISTS #{table} (#{stringify});")
     end
@@ -117,7 +103,21 @@ module DatabaseConnector
   def self.included(base)
     base.extend ClassDatabaseConnector
   end
-
+  
+  # returns the table name - the plural of the object's class
+  def table
+    self.class.to_s.pluralize
+  end
+  
+  # returns a String of the database_field_names for SQL
+  def database_field_names
+    attributes = []
+    instance_variables.each do |i|
+      attributes << i.to_s.delete("@")
+    end
+    attributes.join(', ')
+  end
+  
   # returns an Array of this object's parameters
   #
   # returns an Array
@@ -146,7 +146,8 @@ module DatabaseConnector
       else
         stringify = joiner + "'#{param.to_s}'"
       end
-      stringify
+    end
+    stringify
   end
   
   def saved_already?
@@ -167,7 +168,7 @@ module DatabaseConnector
   # change_value            - Value (Integer or String) to change in the change field
   #
   # returns nothing
-  def update_record(change_field: change_field, change_value: change_value)
+  def update_record(change_field, change_value)
     if change_value.is_a? String
       change_value = add_quotes_to_string(change_value)
     end
