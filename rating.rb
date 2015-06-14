@@ -1,8 +1,5 @@
 require_relative 'database_connector.rb'
 
- CONNECTION=SQLite3::Database.new("movies.db")
- CONNECTION.results_as_hash = true
-
 class Rating
   include DatabaseConnector
     

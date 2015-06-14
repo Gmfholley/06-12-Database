@@ -1,9 +1,5 @@
 require_relative 'database_connector.rb'
 
-CONNECTION=SQLite3::Database.new("movies.db")
-CONNECTION.results_as_hash = true
-CONNECTION.execute("PRAGMA foreign_keys = ON;")
-
 class TimeSlot
   include DatabaseConnector
 
