@@ -1,6 +1,8 @@
 require_relative 'database_connector.rb'
 
-
+# CONNECTION=SQLite3::Database.new("movies.db")
+# CONNECTION.results_as_hash = true
+# CONNECTION.execute("PRAGMA foreign_keys = ON;")
 
 class LocationTimeSlot
   include DatabaseConnector
@@ -20,7 +22,7 @@ class LocationTimeSlot
     @location_id = args[:location_id] || args["location_id"]
     @timeslot_id = args[:timeslot_id] || args["timeslot_id"]
     @movie_id = args[:movie_id] || args["movie_id"]
-    @num_tickets_sold = 0
+    @num_tickets_sold = args["num_tickets_sold"] || 0
   end
   
   # returns the String representation of the time slot

@@ -211,7 +211,7 @@ module DatabaseConnector
   def save_record
     if @id == ""
       CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
-      @id = CONNECTION.last_insert_row_id if @id = ""
+      @id = CONNECTION.last_insert_row_id if @id == ""
       true
     else
       false
