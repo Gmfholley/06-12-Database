@@ -1,5 +1,7 @@
 require "minitest/autorun"
 require_relative "movie.rb"
+require_relative "rating.rb"
+require_relative "studio.rb"
 
 class MovieTest < Minitest::Test
   # One of my specs is that the tip_amount method should blah blah blah.
@@ -23,6 +25,14 @@ class MovieTest < Minitest::Test
     assert_equal("Paramount", movie.studio)
     assert_equal(1, movie.length)
     
+    
+    movie = Movie.create_from_database(1)
+    
+    assert_equal("Age of Ultron", movie.name)
+    assert_equal("In a word where superheroes come together to face evil...", movie.description)
+    assert_equal("PG-13", movie.rating)
+    assert_equal("Marvel Studios", movie.studio)
+    assert_equal(160, movie.length)
     #
     # @id = args["id"] || ""
     # @name = args[:name] || args["name"]

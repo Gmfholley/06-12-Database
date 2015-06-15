@@ -39,16 +39,16 @@ class Movie
   #
   # returns String
   def rating
-    rating_hash = where_this_parameter_in_another_table("ratings", @rating_id, "id")
-    rating_hash.first["rating"]
+    r = Rating.create_from_database(rating_id)
+    r.rating
   end
   
   # returns the studio name
   #
   # returns String
   def studio
-    studio_hash = where_this_parameter_in_another_table("studios", @studio_id, "id")
-    studio_hash.first["name"]
+    s = Studio.create_from_database(studio_id)
+    s.name
   end
   
   # returns Array of all the location-times for this movie
