@@ -74,7 +74,7 @@ module DatabaseConnector
     #
     # returns Array of a Hash of the resulting records
     def all
-      CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize};")
+      self.as_objects(CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize};"))
     end
     
     # retrieves a record matching the id
@@ -103,13 +103,17 @@ module DatabaseConnector
     # relationship    - String of the relationship (ie: ==, >=, <=, !)
     #
     # returns an Array of hashes
-    def all_that_match(field_name, field_value, relationship)
+    def where_match(field_name, field_value, relationship)
       if field_value.is_a? String
         field_value = add_quotes_to_string(field_value)
       end
-      CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE #{field_name} #{relationship} #{field_value};")
+      self.as_objects(CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE #{field_name} #{relationship} #{field_value};"))
     end
     
+    
+    def get_table_info
+      CONNECTION.execute("PRAGMA table_info(#{self.to_s.pluralize});")
+    end
     # adds '' quotes around a string for SQL statement
     #
     # Example: 
@@ -210,6 +214,7 @@ module DatabaseConnector
   # returns Boolean if unable to save
   def save_record
    # if @id == ""
+   binding.pry
       CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
       @id = CONNECTION.last_insert_row_id if @id == ""
    #   true

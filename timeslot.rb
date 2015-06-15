@@ -15,6 +15,6 @@ class Time
   #
   # returns Array
   def location_times
-    LocationTime.as_objects(LocationTime.all_that_match("timeslot_id", id, "=="))
+    LocationTime.where_match("timeslot_id", id, "==")
   end
 end

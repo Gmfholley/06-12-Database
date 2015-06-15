@@ -27,18 +27,18 @@ class Location
   end
   
   def has_available_time_slot?
-    self.all_time_slots.length == num_time_slots
+    self.all_time_slots.length < num_time_slots
   end
   
   def all_time_slots
-    LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("location_id", id, "=="))
+    LocationTime.where_match("location_id", id, "==")
   end
   
   # returns Array of all the location-times for this movie
   #
   # returns Array
   def location_times
-    LocationTime.as_objects(LocationTime.all_that_match("location_id", id, "=="))
+    LocationTime.where_match("location_id", id, "==")
   end
   
 end

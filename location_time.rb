@@ -6,7 +6,8 @@ require_relative 'database_connector.rb'
 
 class LocationTime
   include DatabaseConnector
-
+  alias_method :save, :save_record 
+  
   attr_reader :location_id, :timeslot_id, :movie_id, :num_tickets_sold
 
   # initializes object
@@ -75,22 +76,26 @@ class LocationTime
   # returns an Array of objects of all movies at this location
   #
   # returns an Array
-  def all_at_this_location
-    LocationTime.as_objects(LocationTime.all_that_match("location_id", @location_id, "=="))
+  def where_this_location
+    LocationTime.where_match("location_id", @location_id, "==")
+  end
+
+  def save_record
+    save
   end
   
   # returns an Array of objects of all movies at this location
   #
   # returns an Array
-  def all_at_this_time
-    LocationTime.as_objects(LocationTime.all_that_match("timeslot_id", @timeslot_id, "=="))
+  def where_this_time
+    LocationTime.where_match("timeslot_id", @timeslot_id, "==")
   end
   
   # returns an Array of objects of all movies at this location
   #
   # returns an Array
-  def all_of_this_movie
-    LocationTime.as_objects(LocationTime.all_that_match("movie_id", @movie_id, "=="))
+  def where_this_movie
+    LocationTime.where_match("movie_id", @movie_id, "==")
   end
   
   # returns all Locations with tickets greater than the number of tickets
@@ -98,8 +103,17 @@ class LocationTime
   # num_tickets    - Integer of the number of tickets sold
   #
   # returns an Array of LocationTime objects
-  def self.all_with_tickets_greater_than(num_tickets)
-    LocationTimes.as_objects(LocationTime.all_that_match("num_tickets_sold", num_tickets, ">"))
+  def self.where_tickets_greater_than(num_tickets)
+    LocationTime.where_match("num_tickets_sold", num_tickets, ">")
+  end
+  
+  
+  def self.where_sold_out(sold_out=true)
+    if sold_out
+     LocationTime.as_objects(CONNECTION.execute("SELECT * FROM locationtimes locationtime LEFT OUTER JOIN locations location ON location.id = locationtime.location_id WHERE location.num_seats <= locationtime.num_tickets_sold;"))
+   else
+     LocationTime.as_objects(CONNECTION.execute("SELECT * FROM locationtimes locationtime LEFT OUTER JOIN locations location ON location.id = locationtime.location_id WHERE location.num_seats > locationtime.num_tickets_sold;"))
+   end
   end
   
   # overwrites DatabaseConnector Module method because this Class has a composite key
