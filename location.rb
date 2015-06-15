@@ -1,4 +1,9 @@
 require_relative 'database_connector.rb'
+require_relative 'location_time.rb'
+
+# CONNECTION=SQLite3::Database.new("movies.db")
+# CONNECTION.results_as_hash = true
+# CONNECTION.execute("PRAGMA foreign_keys = ON;")
 
 class Location
   include DatabaseConnector
@@ -26,4 +31,11 @@ class Location
     "id: #{id}\tname: #{name}\tnumber of seats: #{num_seats}\tnumber of staff: #{num_staff}\tnumber of movies played a day: #{num_time_slots}"
   end
   
+  def has_available_time_slot?
+    self.all_time_slots.length == num_time_slots
+  end
+  
+  def all_time_slots
+    LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("location_id", id, "=="))
+  end
 end
