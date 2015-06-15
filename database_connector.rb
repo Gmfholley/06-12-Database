@@ -59,6 +59,7 @@ module DatabaseConnector
     #     CONNECTION.execute("INSERT INTO #{self.to_s.pluralize} (#{string_field_names}) VALUES (#{record_as_string});")
     #   end
     # end
+    ##########
     
     # deletes the record matching the primary key
     #
