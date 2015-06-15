@@ -1,5 +1,9 @@
 require_relative 'database_connector.rb'
 
+# CONNECTION=SQLite3::Database.new("movies.db")
+# CONNECTION.results_as_hash = true
+# CONNECTION.execute("PRAGMA foreign_keys = ON;")
+
 class Movie
   include DatabaseConnector
   
@@ -27,7 +31,7 @@ class Movie
   #
   # returns String
   def to_s
-    "id:\t#{@id}]\t\tname:\t#{name}\t\trating:\t#{rating}\t\tstudio:\t#{studio}\t\tlength:\t#{length}"
+    "id:\t#{@id}\t\tname:\t#{name}\t\trating:\t#{rating}\t\tstudio:\t#{studio}\t\tlength:\t#{length}"
   end
 
   # returns the rating

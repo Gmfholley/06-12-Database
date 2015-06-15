@@ -8,7 +8,7 @@ class Studio
 
   
   def initialize(args)
-    @id = ""
+    @id = args["id"] || ""
     @name = args[:name] || args["name"]
   end
   

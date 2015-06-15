@@ -2,12 +2,13 @@ require_relative 'database_connector.rb'
 
 class Rating
   include DatabaseConnector
-    
+  
+  # rating - String of the movie rating (G, PG, PG-13, R, etc)
   attr_reader :rating
 
   
   def initialize(args)
-    @id = ""
+    @id = args["id"] || ""
     @rating = args[:rating] || args["rating"]
   end
   
