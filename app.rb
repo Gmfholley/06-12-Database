@@ -351,7 +351,10 @@ class DatabaseDriver
   # returns menu_items's command of what to run
   def run_menu(menu)
     display_menu(menu)
-    user_choice = menu.get_user_menu_choice
+    user_choice = get_user_input(menu.user_pick_one_prompt)
+    while !menu.user_input_valid?(user_choice)
+      user_choice = get_user_input(menu.user_wrong_choice_prompt)
+    end
     if menu.user_wants_to_quit?(user_choice)
       exit 0
     else

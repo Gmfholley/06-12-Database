@@ -26,19 +26,6 @@ class Menu
     menu_items.push(new_item)
   end
   
-  # displays menu and gets user response until user quits or selects a menu item
-  #
-  # returns menu_items's command of what to run
-  def run_menu
-    display_menu
-    user_choice = get_user_menu_choice
-    if user_wants_to_quit?(user_choice)
-      exit 0
-    else
-      find_menu_item_chosen(user_choice).do_if_chosen
-    end
-  end
-  
   # returns the menu_item object that the user has chosen (by the item's key)
   #
   # user_input - String of the user's input
@@ -51,32 +38,14 @@ class Menu
   # gets user's menu prompt
   #
   # returns user's response (which is either quit or response from menu)
-  def get_user_menu_choice
-    user_input = get_user_input(user_pick_one_prompt)
-    while !user_wants_to_quit?(user_input) && !user_response_in_menu?(user_input)
-      user_input = get_user_input(user_wrong_choice_prompt)
+  def user_input_valid?(user_input)
+    if user_wants_to_quit?(user_input) || user_response_in_menu?(user_input)
+      true
+    else
+      false
     end
-    user_input
   end
   
-  
-  # displays the menu
-  #
-  # returns menu_items
-  def display_menu
-    puts title
-    menu_items.each_with_index { |item, index| puts "#{index + 1}.\t #{item.user_message}" }
-  end
-  
-  # gets the user's input
-  #
-  # message - String for the user
-  #
-  # returns the user's input as a string
-  def get_user_input(message)
-    puts message
-    return gets.chomp
-  end
   
   # returns boolean of whether user's input indicates they want to quit
   def user_wants_to_quit?(user_input)
