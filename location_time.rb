@@ -59,7 +59,7 @@ class LocationTime
   # returns whether tickets are sold out for the location
   #
   # returns Boolean
-  def tickets_sold_out?
+  def sold_out?
     l = Location.create_from_database(location_id)
     l.num_seats == num_tickets_sold
   end
@@ -67,7 +67,7 @@ class LocationTime
   # returns how many tickets remain at this location
   #
   # returns Integer
-  def tickets_remain
+  def tickets_remaining
     l = Location.create_from_database(location_id)
     l.num_seats - num_tickets_sold
   end

@@ -46,8 +46,8 @@ class LocationTimeTest < Minitest::Test
   def test_tickets_sold
        loctime2 = LocationTime.create_from_database(1, 3)
          # "location:\t#{location}\t\ttimeslot:\t#{timeslot}\t\tmovie:\t#{movie}"
-       assert_equal(300, loctime2.tickets_remain)
-       assert_equal(false, loctime2.tickets_sold_out?)
+       assert_equal(300, loctime2.tickets_remaining)
+       assert_equal(false, loctime2.sold_out?)
   end
   
 end
