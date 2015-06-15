@@ -11,4 +11,10 @@ class Time
     @time_slot = args[:time] || args["time"]
   end
 
+  # returns Array of all the location-times for this movie
+  #
+  # returns Array
+  def location_times
+    LocationTime.as_objects(LocationTime.all_that_match("timeslot_id", id, "=="))
+  end
 end

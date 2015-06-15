@@ -33,4 +33,12 @@ class Location
   def all_time_slots
     LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("location_id", id, "=="))
   end
+  
+  # returns Array of all the location-times for this movie
+  #
+  # returns Array
+  def location_times
+    LocationTime.as_objects(LocationTime.all_that_match("location_id", id, "=="))
+  end
+  
 end

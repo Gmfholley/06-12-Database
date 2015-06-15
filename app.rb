@@ -20,6 +20,7 @@ class DatabaseDriver
       main_menu.add_menu_item({key_user_returns: 1, user_message: "Work with movies.", do_if_chosen:  ["movie_menu"]})
       main_menu.add_menu_item({key_user_returns: 2, user_message: "Work with theatres.", do_if_chosen: ["theatre_menu"]})
       main_menu.add_menu_item({key_user_returns: 3, user_message: "Schedule movie time slots by theatre.", do_if_chosen: ["loc_time_menu"]})
+      main_menu.add_menu_item({key_user_returns: 4, user_message: "Run an analysis on my theatres.", do_if_chosen: ["analyze"]})
       user_wants = run_menu(main_menu)
       call_method(method_name: user_wants[0], params: user_wants[1])
   end
@@ -64,6 +65,22 @@ class DatabaseDriver
       call_method(method_name: user_wants[0], params: user_wants[1])
   end
   
+  def analyze
+      analyze_menu = Menu.new("What would you like to see?")
+      analyze_menu.add_menu_item({key_user_returns: 1, user_message: "Get all time/theatres for a particular movie.", do_if_chosen: ["get_time_location_for_movie"]})
+      analyze_menu.add_menu_item({key_user_returns: 2, user_message: "Get all times for a particular theatre.", do_if_chosen: ["get_time_location_for_location"]})
+      analyze_menu.add_menu_item({key_user_returns: 3, user_message: "Get all movies played at this time.", do_if_chosen: ["get_all_movie_times"]})
+      analyze_menu.add_menu_item({key_user_returns: 4, user_message: "Get all time/theatres that are sold out or not sold out.", do_if_chosen: ["get_sold_time_locations"]})
+      analyze_menu.add_menu_item({key_user_returns: 5, user_message: "Get all movies from a particular studio or rating.", do_if_chosen: ["get_movies_like_this"]})
+      analyze_menu.add_menu_item({key_user_returns: 6, user_message: "Get all theatres that are booked or not fully booked.", do_if_chosen: ["get_available_locations"]})
+      
+      analyze_menu.add_menu_item({key_user_returns: 7, user_message: "Return to main menu.", do_if_chosen: 
+          ["main_menu"]})
+      user_wants = run_menu(analyze_menu)
+      call_method(method_name: user_wants[0], params: user_wants[1])
+  end
+  
+  
   def call_method(method_name: method, params: para = nil)
       if para.nil?
         self.method(method_name).call
@@ -72,18 +89,60 @@ class DatabaseDriver
       end
   end
   
+  #analyze menu
+  ###################
+  
+  def get_time_location_for_movie
+    create_menu = Menu.new("Pick which movie you want to get time/theatres for.")
+    all = Movie.as_objects(Movie.all)
+    all.each_with_index do |movie, x|
+      create_menu.add_menu_item({key_user_returns: x + 1, user_message: movie.to_s, do_if_chosen:    
+        [movie]})
+    end
+    chosen_movie = run_menu(create_menu)[0]
+    
+    puts chosen_movie.location_times
+    main_menu
+  end
+  
+  def get_time_location_for_location
+    create_menu = Menu.new("Pick which theatre you want to get time/theatres for.")
+    all = Location.as_objects(Location.all)
+    all.each_with_index do |theatre, x|
+      create_menu.add_menu_item({key_user_returns: x + 1, user_message: theatre.to_s, do_if_chosen:    
+        [theatre]})
+    end
+    chosen_theatre = run_menu(create_menu)[0]
+    puts chosen_theatre.location_times
+    main_menu
+  end
+  
+  def get_all_movie_times
+    create_menu = Menu.new("Pick which time you want to look at.")
+    all = Time.as_objects(Time.all)
+    all.each_with_index do |time, x|
+      create_menu.add_menu_item({key_user_returns: x + 1, user_message: time.time_slot, do_if_chosen:    
+        [time]})
+    end
+    chosen_time = run_menu(create_menu)[0]
+    puts chosen_time.location_times
+    main_menu
+  end
+  
+  
   #########Update methods
   
   def update_loc_time
+
     all_locs = LocationTime.as_objects(LocationTime.all)
     create_menu = Menu.new("Pick which one you want to update.")
     all_locs.each_with_index do |loc, x|
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.to_s, do_if_chosen:    
-      [loc]})
+        [loc]})
     end
     update_loc = run_menu(create_menu)[0]
-    
-    
+
+
     fields = update_loc.database_field_names
     create_menu = Menu.new("Which field do you want to update?")
     fields.each_with_index do |field, x|
@@ -206,13 +265,18 @@ class DatabaseDriver
   
   ############Create Methods
   def create_loc_time
-    all_locs = Location.as_objects(Location.all)
-    create_menu = Menu.new("Pick which location you are booking for.")
-    all_locs.each_with_index do |loc, x|
-      create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.name, do_if_chosen:    
-      [loc.id]})
+    is_available = false
+    while !is_available
+      all_locs = Location.as_objects(Location.all)
+      create_menu = Menu.new("Pick which location you are booking for.")
+      all_locs.each_with_index do |loc, x|
+        create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.name, do_if_chosen:    
+        [loc.id]})
+      end
+      loc = run_menu(create_menu)[0]
+      is_available = loc.has_available_time_slot?
+      puts "That theatre is fully booked.  Try again." if !is_available
     end
-    loc = run_menu(create_menu)[0]
     
     
     all_times = Time.as_objects(Time.all)
