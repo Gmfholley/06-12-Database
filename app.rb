@@ -20,7 +20,7 @@ class DatabaseDriver
       main_menu.add_menu_item({key_user_returns: 1, user_message: "Work with movies.", do_if_chosen:  ["movie_menu"]})
       main_menu.add_menu_item({key_user_returns: 2, user_message: "Work with theatres.", do_if_chosen: ["theatre_menu"]})
       main_menu.add_menu_item({key_user_returns: 3, user_message: "Schedule movie time slots by theatre.", do_if_chosen: ["loc_time_menu"]})
-      user_wants = main_menu.run_menu
+      user_wants = run_menu(main_menu)
       call_method(method_name: user_wants[0], params: user_wants[1])
   end
     
@@ -32,7 +32,7 @@ class DatabaseDriver
       movie_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a movie.", do_if_chosen: ["delete_movie"]})
       movie_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
-      user_wants = movie_menu.run_menu
+      user_wants = run_menu(movie_menu)
       call_method(method_name: user_wants[0], params: user_wants[1])
   end
   
@@ -44,7 +44,7 @@ class DatabaseDriver
       theatre_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre.", do_if_chosen: ["delete_theatre"]})
       theatre_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
-      user_wants = theatre_menu.run_menu
+      user_wants = run_menu(theatre_menu)
       call_method(method_name: user_wants[0], params: user_wants[1])
   end
   
@@ -60,7 +60,7 @@ class DatabaseDriver
         ["delete_loc_time"]})
       loc_time_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
-      user_wants = loc_time_menu.run_menu
+      user_wants = run_menu(loc_time_menu)
       call_method(method_name: user_wants[0], params: user_wants[1])
   end
   
@@ -81,7 +81,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.to_s, do_if_chosen:    
       [loc]})
     end
-    update_loc = create_menu.run_menu[0]
+    update_loc = run_menu(create_menu)[0]
     
     
     fields = update_loc.database_field_names
@@ -90,9 +90,9 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: field, do_if_chosen:    
       [field]})
     end
-    choice = create_menu.run_menu[0]
+    choice = run_menu(create_menu)[0]
     new_value = get_user_input("What should the value of #{choice} be?")
-    
+    ###### PROBLEM HERE GETTING INTEGERS
     begin
       update_loc.update_record(choice, new_value)
     rescue Exception => msg
@@ -108,7 +108,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.to_s, do_if_chosen:    
       [loc]})
     end
-    update_loc = create_menu.run_menu[0]
+    update_loc = run_menu(create_menu)[0]
     
     
     fields = update_loc.database_field_names
@@ -117,7 +117,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: field, do_if_chosen:    
       [field]})
     end
-    choice = create_menu.run_menu[0]
+    choice = run_menu(create_menu)[0]
     new_value = get_user_input("What should the value of #{choice} be?")
     
     begin
@@ -135,7 +135,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.to_s, do_if_chosen:    
       [loc]})
     end
-    update_loc = create_menu.run_menu[0]
+    update_loc = run_menu(create_menu)[0]
     
     
     fields = update_loc.database_field_names
@@ -144,7 +144,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: field, do_if_chosen:    
       [field]})
     end
-    choice = create_menu.run_menu[0]
+    choice = run_menu(create_menu)[0]
     new_value = get_user_input("What should the value of #{choice} be?")
     
     begin
@@ -163,7 +163,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.to_s, do_if_chosen:    
       [loc]})
     end
-    delete_loc = create_menu.run_menu[0]
+    delete_loc = run_menu(create_menu)[0]
     begin
       LocationTimeSlot.delete_record(location_id: delete_loc.location_id, timeslot_id: delete_loc.timeslot_id)
     rescue Exception => msg
@@ -179,7 +179,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.to_s, do_if_chosen:    
       [loc.id]})
     end
-    delete_loc = create_menu.run_menu[0]
+    delete_loc = run_menu(create_menu)[0]
     begin
       Location.delete_record(delete_loc)
     rescue Exception => msg
@@ -195,7 +195,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.to_s, do_if_chosen:    
       [loc.id]})
     end
-    delete_loc = create_menu.run_menu[0]
+    delete_loc = run_menu(create_menu)[0]
     begin
       Movie.delete_record(delete_loc)
     rescue Exception => msg
@@ -212,7 +212,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.name, do_if_chosen:    
       [loc.id]})
     end
-    loc = create_menu.run_menu[0]
+    loc = run_menu(create_menu)[0]
     
     
     all_times = TimeSlot.as_objects(TimeSlot.all)
@@ -221,7 +221,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: time.time_slot.to_s, do_if_chosen:    
       [time.id]})
     end
-    time = create_menu.run_menu[0]
+    time = run_menu(create_menu)[0]
     
     all_movies = Movie.as_objects(Movie.all)
     create_menu = Menu.new("Pick which movie you are booking for.")
@@ -229,7 +229,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1,user_message: movie.to_s, do_if_chosen:    
       [movie.id]})
     end
-    movie = create_menu.run_menu[0]
+    movie = run_menu(create_menu)[0]
     
     begin 
       l = LocationTimeSlot.new(location_id: loc, timeslot_id: time, movie_id: movie)
@@ -290,7 +290,7 @@ class DatabaseDriver
       [studio.id]})
     end
     create_menu.add_menu_item({key_user_returns: all_studios.length, user_message: "Studio is not listed.", do_if_chosen: "create_studio"})
-    studio = create_menu.run_menu[0]
+    studio = run_menu(create_menu)[0]
     
     all_ratings = Rating.as_objects(Rating.all)
     create_menu = Menu.new("Pick what the movie is rated")
@@ -298,7 +298,7 @@ class DatabaseDriver
       create_menu.add_menu_item({key_user_returns: x + 1,user_message: r.rating, do_if_chosen:    
       [r.id]})
     end
-    rating = create_menu.run_menu[0]
+    rating = run_menu(create_menu)[0]
     
     if studio == "create_studio"
       puts "Sorry.  I did not create this menu item yet." # create_studio
@@ -336,6 +336,27 @@ class DatabaseDriver
   def show_movies
     puts Movie.as_objects(Movie.all)
     movie_menu
+  end
+  
+  # displays the menu
+  #
+  # returns menu_items
+  def display_menu(menu)
+    puts menu.title
+    menu.menu_items.each_with_index { |item, index| puts "#{index + 1}.\t #{item.user_message}" }
+  end
+  
+  # displays menu and gets user response until user quits or selects a menu item
+  #
+  # returns menu_items's command of what to run
+  def run_menu(menu)
+    display_menu(menu)
+    user_choice = menu.get_user_menu_choice
+    if menu.user_wants_to_quit?(user_choice)
+      exit 0
+    else
+      menu.find_menu_item_chosen(user_choice).do_if_chosen
+    end
   end
   
   def get_user_input(message)
