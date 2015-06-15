@@ -1,8 +1,8 @@
 require_relative 'database_connector.rb'
 
-# CONNECTION=SQLite3::Database.new("movies.db")
-# CONNECTION.results_as_hash = true
-# CONNECTION.execute("PRAGMA foreign_keys = ON;")
+CONNECTION=SQLite3::Database.new("movies.db")
+CONNECTION.results_as_hash = true
+CONNECTION.execute("PRAGMA foreign_keys = ON;")
 
 class LocationTimeSlot
   include DatabaseConnector
@@ -36,30 +36,26 @@ class LocationTimeSlot
   #
   # returns String
   def movie
-    movies = where_this_parameter_in_another_table("movies", @movie_id, "id")
-    movies.first["name"]
+    m = Movie.create_from_database(movie_id)
+    m.name
   end
   
   # returns the time slot in time
   #
   # returns Integer
   def timeslot
-    timeslots = where_this_parameter_in_another_table("timeslots", @timeslot_id, "id")
-    timeslots.first["time"]
+    t = TimeSlot.create_from_database(timeslot_id)
+    t.time_slot
   end
   
   # returns the location name for this time slot
   #
   # returns String
   def location
-    locations = where_this_parameter_in_another_table("locations", @location_id, "id")
-    locations.first["name"]
+    l = Location.create_from_database(location_id)
+    l.name
   end
-  
-  def self.delete_record(location_id: location, timeslot_id: time)
-    CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND timeslot_id == #{timeslot_id}")
-  end
-  
+
   # returns an Array of hashes of all movies at this location
   #
   # returns an Array
@@ -75,9 +71,17 @@ class LocationTimeSlot
     LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("movie_id", @movie_id, "=="))
   end
   
-  def all_with_tickets_greater_than(num_tickets)
+  def self.delete_record(location_id, timeslot_id)
+    CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND timeslot_id == #{timeslot_id}")
+  end
+  
+  def self.all_with_tickets_greater_than(num_tickets)
     LocationTimeSlots.as_objects(LocationTimeSlot.all_that_match("num_tickets_sold", num_tickets, ">"))
   end
   
+  def self.create_from_database(location_id, timeslot_id)
+    rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE location_id = #{location_id} AND timeslot_id = #{timeslot_id};")
+    self.new(rec[0])
+  end
   
 end
