@@ -80,9 +80,20 @@ module DatabaseConnector
     # retrieves a record matching the id
     #
     # returns this object's Hash
-    def single_record(id)
+    def create_from_database(id)
       rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE id = #{id};")
-      rec[0]
+      self.new(rec[0])
+    end
+    
+    # convert Hash records to Objects
+    #
+    # returns an Array of objects
+    def as_objects(hashes)
+      as_object = []
+      hashes.each do |hash|
+        as_object.push(self.new(hash))
+      end
+      as_object
     end
     
     # retrieves all records in this table where field name and field value have this relationship
@@ -98,8 +109,6 @@ module DatabaseConnector
       end
       CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE #{field_name} #{relationship} #{field_value};")
     end
-    
-    
     
     # adds '' quotes around a string for SQL statement
     #
@@ -189,16 +198,24 @@ module DatabaseConnector
     stringify
   end
   
+  # checks if this object has been saved to the database yet
+  #
+  # returns Boolean
   def saved_already?
     ! @id == ""
   end
   
   # creates a new record in the table for this object
   #
-  # returns nothing
+  # returns Boolean if unable to save
   def save_record
-    CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
-    @id = CONNECTION.last_insert_row_id
+    if @id == ""
+      CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
+      @id = CONNECTION.last_insert_row_id if @id = ""
+      true
+    else
+      false
+    end
   end
 
   # updates the field of one column if records meet criteria

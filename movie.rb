@@ -27,7 +27,7 @@ class Movie
   #
   # returns String
   def to_s
-    "id:\t#{@id}]\tname:\t#{name}\trating:\t#{rating}\tstudio:\t#{studio}\tlength:\t#{length}"
+    "id:\t#{@id}]\t\tname:\t#{name}\t\trating:\t#{rating}\t\tstudio:\t#{studio}\t\tlength:\t#{length}"
   end
 
   # returns the rating
@@ -35,7 +35,7 @@ class Movie
   # returns String
   def rating
     rating_hash = where_this_parameter_in_another_table("ratings", @rating_id, "id")
-    rating_hash.first.to_s
+    rating_hash.first["rating"]
   end
   
   # returns the studio name
@@ -43,7 +43,7 @@ class Movie
   # returns String
   def studio
     studio_hash = where_this_parameter_in_another_table("studios", @studio_id, "id")
-    studio_hash.first.to_s
+    studio_hash.first["name"]
   end
   
   # returns Array of all the location-times for this movie
@@ -51,14 +51,7 @@ class Movie
   # returns Array
   def location_times
     times = where_this_id_in_another_table("locationtimeslots", "movie_id")
-    location_timeslots = []
-    times.each do |location_time|
-      binding.pry
-       l = LocationTimeSlot.new(location_time)
-       location_timeslots.push(l)
-    end
-    binding.pry
-    location_timeslots
+    LocationTimeSlot.as_objects(times)
   end
   
   
