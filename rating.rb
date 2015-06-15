@@ -8,7 +8,7 @@ class Rating
   
   def initialize(args)
     @id = ""
-    @rating = args[:rating]
+    @rating = args[:rating] || args["rating"]
   end
   
   

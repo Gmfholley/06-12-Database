@@ -73,20 +73,47 @@ module DatabaseConnector
     # returns all records in database
     #
     # returns Array of a Hash of the resulting records
-    def all_records
+    def all
       CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize};")
     end
     
-    # returns the result of an array where field_name = field_value
+    # retrieves a record matching the id
     #
-    # returns Array of a Hash of the resulting records
-    def records_matching_this(field_name, field_value)
-      if field_value.is_a? String
-        field_value = "'#{field_value}'"
-      end
-      CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE #{field_name} == #{field_value};")
+    # returns this object's Hash
+    def single_record(id)
+      rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE id = #{id};")
+      rec[0]
     end
     
+    # retrieves all records in this table where field name and field value have this relationship
+    #
+    # fieldname       - String of the field name in this table
+    # field_value     - String or Integer of this field value in the table
+    # relationship    - String of the relationship (ie: ==, >=, <=, !)
+    #
+    # returns an Array of hashes
+    def all_that_match(field_name, field_value, relationship)
+      if field_value.is_a? String
+        field_value = add_quotes_to_string(field_value)
+      end
+      CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE #{field_name} #{relationship} #{field_value};")
+    end
+    
+    
+    
+    # adds '' quotes around a string for SQL statement
+    #
+    # Example: 
+    #
+    #        text
+    #     => 'text'
+    # 
+    # string  - String
+    #
+    # returns a String
+    def add_quotes_to_string(string)
+      string = "'#{string}'"
+    end
   end
   ################################################################################
   # End of Class Module Methods
@@ -185,6 +212,30 @@ module DatabaseConnector
       change_value = add_quotes_to_string(change_value)
     end
     CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE id = #{@id};")
+  end
+  
+  # returns the result of an array where field_name = field_value
+  #
+  # other_table      - String of the other table name
+  # other_field_name - String of the field name of this object's ID in another table
+  #
+  # returns Array of a Hash of the resulting records
+  def where_this_id_in_another_table(other_table, other_field_name)
+    CONNECTION.execute("SELECT * FROM #{other_table} WHERE #{other_field_name} == #{@id};")
+  end
+  
+  # returns the result of an array where field_name = field_value
+  #
+  # other_table      - String of the other table name
+  # other_field_name - String of the field name of this parameter in the other table
+  # this_parameter -   String or Integer of the value of this parameter for this object
+  #
+  # returns Array of a Hash of the resulting records
+  def where_this_parameter_in_another_table(other_table, this_parameter, other_field_name)
+    if this_parameter.is_a? String
+      this_paramter = add_quotes_to_string(this_parameter)
+    end
+    CONNECTION.execute("SELECT * FROM #{other_table} WHERE #{other_field_name} == #{this_parameter};")
   end
   
   # adds '' quotes around a string for SQL statement

@@ -8,7 +8,7 @@ class TimeSlot
   
   def initialize(args)
     @id = ""
-    @time_slot = args[:time_slot]
+    @time_slot = args[:time_slot] || args["time_slot"]
   end
 
 end
