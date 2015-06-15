@@ -26,10 +26,16 @@ class Location
     "id: #{id}\tname: #{name}\tnumber of seats: #{num_seats}\tnumber of staff: #{num_staff}\tnumber of movies played a day: #{num_time_slots}"
   end
   
+  # returns a Boolean if this location has available time slots
+  #
+  # returns Boolean
   def has_available_time_slot?
     self.all_time_slots.length < num_time_slots
   end
   
+  # returns an Array of LocationtTime objects in this location
+  #
+  # returns an Array
   def all_time_slots
     LocationTime.where_match("location_id", id, "==")
   end

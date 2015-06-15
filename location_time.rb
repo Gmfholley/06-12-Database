@@ -80,8 +80,17 @@ class LocationTime
     LocationTime.where_match("location_id", @location_id, "==")
   end
 
+  # saves record with Module's reord if condition met
+  # overwrites Modules save_record method
+  #
+  # returns Boolean
   def save_record
-    save
+    if location.has_available_time_slot?
+      save
+      true
+    else
+      false
+    end
   end
   
   # returns an Array of objects of all movies at this location
