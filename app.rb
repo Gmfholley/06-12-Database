@@ -22,7 +22,8 @@ class DatabaseDriver
       main_menu.add_menu_item({key_user_returns: 3, user_message: "Schedule movie time slots by theatre.", do_if_chosen: ["loc_time_menu"]})
       main_menu.add_menu_item({key_user_returns: 4, user_message: "Run an analysis on my theatres.", do_if_chosen: ["analyze_menu"]})
       user_wants = run_menu(main_menu)
-      call_method(method_name: user_wants[0], params: user_wants[1])
+      params = user_wants.slice(1..-1) if user_wants.length > 1
+      call_method(user_wants.slice(0), params)
   end
     
   def movie_menu
@@ -30,11 +31,12 @@ class DatabaseDriver
       movie_menu.add_menu_item({key_user_returns: 1, user_message: "Create a movie.", do_if_chosen: ["create_movie"]})
       movie_menu.add_menu_item({key_user_returns: 2, user_message: "Update a movie.", do_if_chosen: ["update_movie"]})
       movie_menu.add_menu_item({key_user_returns: 3, user_message: "Show me movies.", do_if_chosen: ["show_movies"]})
-      movie_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a movie.", do_if_chosen: ["delete_movie"]})
+      movie_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a movie.", do_if_chosen: ["delete_object", Movie, "movie_menu"]})
       movie_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
       user_wants = run_menu(movie_menu)
-      call_method(method_name: user_wants[0], params: user_wants[1])
+      params = user_wants.slice(1..-1) if user_wants.length > 1
+      call_method(user_wants.slice(0), params)
   end
   
   def theatre_menu
@@ -42,11 +44,12 @@ class DatabaseDriver
       theatre_menu.add_menu_item({key_user_returns: 1, user_message: "Create a theatre.", do_if_chosen: ["create_theatre"]})
       theatre_menu.add_menu_item({key_user_returns: 2, user_message: "Update a theatre.", do_if_chosen: ["update_theatre"]})
       theatre_menu.add_menu_item({key_user_returns: 3, user_message: "Show me theatres.", do_if_chosen: ["show_theatres"]})
-      theatre_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre.", do_if_chosen: ["delete_theatre"]})
+      theatre_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre.", do_if_chosen: ["delete_object", Location, "theatre_menu"]})
       theatre_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
       user_wants = run_menu(theatre_menu)
-      call_method(method_name: user_wants[0], params: user_wants[1])
+      params = user_wants.slice(1..-1) if user_wants.length > 1
+      call_method(user_wants.slice(0), params)
   end
   
   def loc_time_menu
@@ -62,7 +65,8 @@ class DatabaseDriver
       loc_time_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
       user_wants = run_menu(loc_time_menu)
-      call_method(method_name: user_wants[0], params: user_wants[1])
+      params = user_wants.slice(1..-1) if user_wants.length > 1
+      call_method(user_wants.slice(0), params)
   end
   
   def analyze_menu
@@ -77,15 +81,16 @@ class DatabaseDriver
       analyze_menu.add_menu_item({key_user_returns: 7, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
       user_wants = run_menu(analyze_menu)
-      call_method(method_name: user_wants[0], params: user_wants[1])
+      params = user_wants.slice(1..-1) if user_wants.length > 1
+      call_method(user_wants.slice(0), params)
   end
   
   
-  def call_method(method_name: method, params: para = nil)
-      if para.nil?
+  def call_method(method_name, params=nil)
+      if params.nil?
         self.method(method_name).call
       else
-        self.method(method_name).call(para)
+        self.method(method_name).call(params)
       end
   end
   
@@ -129,9 +134,11 @@ class DatabaseDriver
     create_menu.add_menu_item({key_user_returns: 2, user_message: "Ratings", do_if_chosen: ["ratings"]})
     choice = run_menu(create_menu)[0]
     if choice == "studios"
-      
+      obj = user_choice_of_object_in_class(Studio)
+      puts Movie.where_match("studio_id", obj.id, "==")
     elsif choice == "ratings"
-      
+      obj = user_choice_of_object_in_class(Rating)
+      puts Movie.where_match("rating_id", obj.id, "==")
     else
       puts "Error: Problem with menu."
     end
@@ -196,26 +203,27 @@ class DatabaseDriver
   end
   
   ##############Delete Methods
+  
+  # Must have a separate delete method for LocationTime because it has a composite Primary Key
+  #
+  # calls the location time menu again
+  
   def delete_loc_time
     delete_loc = user_choice_of_object_in_class(LocationTime)
     try_to_update_database{
-      LocationTime.delete_record(location_id: delete_loc.location_id, timeslot_id: delete_loc.timeslot_id)
+      LocationTime.delete_record(delete_loc.location_id, delete_loc.timeslot_id)
     }
     loc_time_menu
   end
   
-  def delete_theatre
-    delete_loc = user_choice_of_object_in_class(Location)
+  def delete_object(args)
+    class_name = args[0]
+    next_method_to_call = args[1]
+    delete_loc = user_choice_of_object_in_class(class_name)
     try_to_update_database{
-      Location.delete_record(delete_loc)
+      class_name.delete_record(delete_loc.id)
     }
-    theatre_menu
-  end
-  
-  def delete_movie
-    delete_loc = user_choice_of_object_in_class(Movie)
-    try_to_update_database {Movie.delete_record(delete_loc)}
-    movie_menu
+    call_method(next_method_to_call)
   end
   
   ############Create Methods
@@ -248,7 +256,7 @@ class DatabaseDriver
       l.save_record
     }
     if !success
-      puts "New record not saved.  You may have tried to double book"
+      puts "New record not saved.  You may have tried to double book."
     end
     loc_time_menu
     # @location_id = args[:location_id] || args["location_id"]
