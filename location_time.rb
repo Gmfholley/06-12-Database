@@ -56,29 +56,52 @@ class LocationTimeSlot
     l.name
   end
 
-  # returns an Array of hashes of all movies at this location
+  # returns an Array of objects of all movies at this location
   #
   # returns an Array
   def all_at_this_location
     LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("location_id", @location_id, "=="))
   end
   
+  # returns an Array of objects of all movies at this location
+  #
+  # returns an Array
   def all_at_this_time
     LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("timeslot_id", @timeslot_id, "=="))
   end
   
+  # returns an Array of objects of all movies at this location
+  #
+  # returns an Array
   def all_of_this_movie
     LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("movie_id", @movie_id, "=="))
   end
   
-  def self.delete_record(location_id, timeslot_id)
-    CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND timeslot_id == #{timeslot_id}")
-  end
-  
+  # returns all Locations with tickets greater than the number of tickets
+  #
+  # num_tickets    - Integer of the number of tickets sold
+  #
+  # returns an Array of LocationTimeSlot objects
   def self.all_with_tickets_greater_than(num_tickets)
     LocationTimeSlots.as_objects(LocationTimeSlot.all_that_match("num_tickets_sold", num_tickets, ">"))
   end
   
+  # overwrites DatabaseConnector Module method because this Class has a composite key
+  #
+  # location_id     - Integer of the location_id part of the composite key
+  # timeslot_id     - Integer of the timeslot_id part of the composite key
+  #
+  # returns nothing
+  def self.delete_record(location_id, timeslot_id)
+    CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND timeslot_id == #{timeslot_id}")
+  end
+  
+  # overwrites DatabaseConnector Module method because this Class has a composite key
+  #
+  # location_id     - Integer of the location_id part of the composite key
+  # timeslot_id     - Integer of the timeslot_id part of the composite key
+  #
+  # returns object with this location_id/timeslot_id
   def self.create_from_database(location_id, timeslot_id)
     rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE location_id = #{location_id} AND timeslot_id = #{timeslot_id};")
     self.new(rec[0])
