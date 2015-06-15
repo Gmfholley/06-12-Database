@@ -343,7 +343,7 @@ class DatabaseDriver
   # returns menu_items
   def display_menu(menu)
     puts menu.title
-    menu.menu_items.each_with_index { |item, index| puts "#{index + 1}.\t #{item.user_message}" }
+    menu.menu_items.each_with_index { |item| puts "#{item.key_user_returns}.\t #{item.user_message}" }
   end
   
   # displays menu and gets user response until user quits or selects a menu item
