@@ -56,7 +56,7 @@ class Movie
   # returns Array
   def location_times
     times = where_this_id_in_another_table("locationtimeslots", "movie_id")
-    LocationTimeSlot.as_objects(times)
+    LocationTime.as_objects(times)
   end
   
   

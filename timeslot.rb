@@ -1,6 +1,6 @@
 require_relative 'database_connector.rb'
 
-class TimeSlot
+class Time
   include DatabaseConnector
 
   attr_reader :time_slot, :id

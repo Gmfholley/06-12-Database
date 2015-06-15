@@ -75,7 +75,7 @@ class DatabaseDriver
   #########Update methods
   
   def update_loc_time
-    all_locs = LocationTimeSlot.as_objects(LocationTimeSlot.all)
+    all_locs = LocationTime.as_objects(LocationTime.all)
     create_menu = Menu.new("Pick which one you want to update.")
     all_locs.each_with_index do |loc, x|
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.to_s, do_if_chosen:    
@@ -157,7 +157,7 @@ class DatabaseDriver
   
   ##############Delete Methods
   def delete_loc_time
-    all_locs = LocationTimeSlot.as_objects(LocationTimeSlot.all)
+    all_locs = LocationTime.as_objects(LocationTime.all)
     create_menu = Menu.new("Pick which one you want to delete.")
     all_locs.each_with_index do |loc, x|
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: loc.to_s, do_if_chosen:    
@@ -165,7 +165,7 @@ class DatabaseDriver
     end
     delete_loc = run_menu(create_menu)[0]
     begin
-      LocationTimeSlot.delete_record(location_id: delete_loc.location_id, timeslot_id: delete_loc.timeslot_id)
+      LocationTime.delete_record(location_id: delete_loc.location_id, timeslot_id: delete_loc.timeslot_id)
     rescue Exception => msg
       puts msg
     end
@@ -215,7 +215,7 @@ class DatabaseDriver
     loc = run_menu(create_menu)[0]
     
     
-    all_times = TimeSlot.as_objects(TimeSlot.all)
+    all_times = Time.as_objects(Time.all)
     create_menu = Menu.new("Pick which time slot you are booking for.")
     all_times.each_with_index do |time, x|
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: time.time_slot.to_s, do_if_chosen:    
@@ -232,7 +232,7 @@ class DatabaseDriver
     movie = run_menu(create_menu)[0]
     
     begin 
-      l = LocationTimeSlot.new(location_id: loc, timeslot_id: time, movie_id: movie)
+      l = LocationTime.new(location_id: loc, timeslot_id: time, movie_id: movie)
       l.save_record
     rescue Exception => msg
       puts msg
@@ -325,7 +325,7 @@ class DatabaseDriver
   ############Show Methods
   
   def show_loc_times
-    puts LocationTimeSlot.as_objects(LocationTimeSlot.all)
+    puts LocationTime.as_objects(LocationTime.all)
     loc_time_menu
   end
   
@@ -337,6 +337,11 @@ class DatabaseDriver
     puts Movie.as_objects(Movie.all)
     movie_menu
   end
+  
+  
+  # try to run code and give user an error message if it doesn't work properlty
+  #
+  #
   
   # displays the menu
   #

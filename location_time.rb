@@ -4,7 +4,7 @@ require_relative 'database_connector.rb'
 # CONNECTION.results_as_hash = true
 # CONNECTION.execute("PRAGMA foreign_keys = ON;")
 
-class LocationTimeSlot
+class LocationTime
   include DatabaseConnector
 
   attr_reader :location_id, :timeslot_id, :movie_id, :num_tickets_sold
@@ -44,7 +44,7 @@ class LocationTimeSlot
   #
   # returns Integer
   def timeslot
-    t = TimeSlot.create_from_database(timeslot_id)
+    t = Time.create_from_database(timeslot_id)
     t.time_slot
   end
   
@@ -55,35 +55,51 @@ class LocationTimeSlot
     l = Location.create_from_database(location_id)
     l.name
   end
-
+  
+  # returns whether tickets are sold out for the location
+  #
+  # returns Boolean
+  def tickets_sold_out?
+    l = Location.create_from_database(location_id)
+    l.num_seats == num_tickets_sold
+  end
+  
+  # returns how many tickets remain at this location
+  #
+  # returns Integer
+  def tickets_remain
+    l = Location.create_from_database(location_id)
+    l.num_seats - num_tickets_sold
+  end
+  
   # returns an Array of objects of all movies at this location
   #
   # returns an Array
   def all_at_this_location
-    LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("location_id", @location_id, "=="))
+    LocationTime.as_objects(LocationTime.all_that_match("location_id", @location_id, "=="))
   end
   
   # returns an Array of objects of all movies at this location
   #
   # returns an Array
   def all_at_this_time
-    LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("timeslot_id", @timeslot_id, "=="))
+    LocationTime.as_objects(LocationTime.all_that_match("timeslot_id", @timeslot_id, "=="))
   end
   
   # returns an Array of objects of all movies at this location
   #
   # returns an Array
   def all_of_this_movie
-    LocationTimeSlot.as_objects(LocationTimeSlot.all_that_match("movie_id", @movie_id, "=="))
+    LocationTime.as_objects(LocationTime.all_that_match("movie_id", @movie_id, "=="))
   end
   
   # returns all Locations with tickets greater than the number of tickets
   #
   # num_tickets    - Integer of the number of tickets sold
   #
-  # returns an Array of LocationTimeSlot objects
+  # returns an Array of LocationTime objects
   def self.all_with_tickets_greater_than(num_tickets)
-    LocationTimeSlots.as_objects(LocationTimeSlot.all_that_match("num_tickets_sold", num_tickets, ">"))
+    LocationTimes.as_objects(LocationTime.all_that_match("num_tickets_sold", num_tickets, ">"))
   end
   
   # overwrites DatabaseConnector Module method because this Class has a composite key
