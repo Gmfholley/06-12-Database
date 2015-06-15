@@ -56,6 +56,10 @@ class LocationTimeSlot
     locations.first["name"]
   end
   
+  def self.delete_record(location_id: location, timeslot_id: time)
+    CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND timeslot_id == #{timeslot_id}")
+  end
+  
   # returns an Array of hashes of all movies at this location
   #
   # returns an Array

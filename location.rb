@@ -3,7 +3,7 @@ require_relative 'database_connector.rb'
 class Location
   include DatabaseConnector
 
-  attr_reader :name, :num_seats, :num_staff, :num_time_slots
+  attr_reader :name, :num_seats, :num_staff, :num_time_slots, :id
 
   # initializes object
   #
@@ -22,5 +22,8 @@ class Location
     @num_time_slots = args[:num_time_slots] || args["num_time_slots"]
   end
 
+  def to_s
+    "id: #{id}\tname: #{name}\tnumber of seats: #{num_seats}\tnumber of staff: #{num_staff}\tnumber of movies played a day: #{num_time_slots}"
+  end
   
 end

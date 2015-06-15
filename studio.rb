@@ -4,7 +4,7 @@ require_relative 'database_connector.rb'
 class Studio
   include DatabaseConnector
     
-  attr_reader :name
+  attr_reader :name, :id
 
   
   def initialize(args)

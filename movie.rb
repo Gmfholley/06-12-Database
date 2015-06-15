@@ -7,7 +7,8 @@ require_relative 'database_connector.rb'
 class Movie
   include DatabaseConnector
   
-  attr_accessor :name, :description, :length
+  attr_accessor :name, :description, :length, :id
+  attr_reader :studio_id, :rating_id
   
   # initializes object
   #

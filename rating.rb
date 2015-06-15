@@ -4,7 +4,7 @@ class Rating
   include DatabaseConnector
   
   # rating - String of the movie rating (G, PG, PG-13, R, etc)
-  attr_reader :rating
+  attr_reader :rating, :id
 
   
   def initialize(args)

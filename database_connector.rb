@@ -37,7 +37,6 @@ module DatabaseConnector
     # returns String
     def create_string_of_field_names_and_types(field_names_and_types)
       field_names_and_types.each do |array|
-        binding.pry
         array[1] = array[1].upcase + ","
       end
       field_names_and_types.last[1] = field_names_and_types.last[1].remove(/,/)
@@ -209,13 +208,13 @@ module DatabaseConnector
   #
   # returns Boolean if unable to save
   def save_record
-    if @id == ""
+   # if @id == ""
       CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
       @id = CONNECTION.last_insert_row_id if @id == ""
-      true
-    else
-      false
-    end
+   #   true
+   # else
+   #   false
+   # end
   end
 
   # updates the field of one column if records meet criteria
