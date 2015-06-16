@@ -30,7 +30,7 @@ class DatabaseDriver
       movie_menu = Menu.new("What would you like to do with movies?")
       movie_menu.add_menu_item({key_user_returns: 1, user_message: "Create a movie.", do_if_chosen: ["create_movie"]})
       movie_menu.add_menu_item({key_user_returns: 2, user_message: "Update a movie.", do_if_chosen: ["update_object", Movie, "movie_menu"]})
-      movie_menu.add_menu_item({key_user_returns: 3, user_message: "Show me movies.", do_if_chosen: ["show_movies"]})
+      movie_menu.add_menu_item({key_user_returns: 3, user_message: "Show me movies.", do_if_chosen: ["show_object", Movie, "movie_menu"]})
       movie_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a movie.", do_if_chosen: ["delete_object", Movie, "movie_menu"]})
       movie_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
@@ -43,7 +43,7 @@ class DatabaseDriver
       theatre_menu = Menu.new("What would you like to do with theatres?")
       theatre_menu.add_menu_item({key_user_returns: 1, user_message: "Create a theatre.", do_if_chosen: ["create_theatre"]})
       theatre_menu.add_menu_item({key_user_returns: 2, user_message: "Update a theatre.", do_if_chosen: ["update_object", Location, "theatre_menu"]})
-      theatre_menu.add_menu_item({key_user_returns: 3, user_message: "Show me theatres.", do_if_chosen: ["show_theatres"]})
+      theatre_menu.add_menu_item({key_user_returns: 3, user_message: "Show me theatres.", do_if_chosen: ["show_object", Location, "theatre_menu"]})
       theatre_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre.", do_if_chosen: ["delete_object", Location, "theatre_menu"]})
       theatre_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
@@ -59,7 +59,7 @@ class DatabaseDriver
       loc_time_menu.add_menu_item({key_user_returns: 2, user_message: "Update a theatre/time slot.", do_if_chosen: 
         ["update_object", LocationTime, "loc_time_menu"]})
       loc_time_menu.add_menu_item({key_user_returns: 3, user_message: "Show me theatre/time slots.", do_if_chosen: 
-        ["show_loc_times"]})
+        ["show_object", LocationTime, "loc_time_menu"]})
       loc_time_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre/time slot.", do_if_chosen: 
         ["delete_loc_time"]})
       loc_time_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
@@ -279,23 +279,17 @@ class DatabaseDriver
   
   ############Show Methods
   # displays all time-theatre combinations to the screen
-  def show_loc_times
-    puts LocationTime.all
-    loc_time_menu
+  #
+  # args - Array containing class_name in first slot and next method to call in its second slot
+  #
+  # calls next method
+  def show_object(args)
+    class_name  = args[0]
+    next_method_to_call = args[1]
+    puts class_name.all
+    call_method(next_method_to_call)
   end
-  
-  
-  # displays all theatres (locations) to the screen
-  def show_theatres
-    puts Location.all
-    theatre_menu
-  end
-  
-  # displays all Movies to the screen
-  def show_movies
-    puts Movie.all
-    movie_menu
-  end
+
   
   private
   
