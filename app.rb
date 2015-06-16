@@ -84,8 +84,8 @@ class DatabaseDriver
       analyze.add_menu_item({key_user_returns: 4, user_message: "Get all time/theatres that are sold out or not sold out.", do_if_chosen: ["get_sold_time_locations"]})
       analyze.add_menu_item({key_user_returns: 5, user_message: "Get all movies from a particular studio or rating.", do_if_chosen: ["get_movies_like_this"]})
       analyze.add_menu_item({key_user_returns: 6, user_message: "Get all theatres that are booked or not fully booked.", do_if_chosen: ["get_available_locations"]})
-      
-      analyze.add_menu_item({key_user_returns: 7, user_message: "Return to main menu.", do_if_chosen: 
+      analyze.add_menu_item({key_user_returns: 7, user_message: "Get number of staff needed for a time slot.", do_if_chosen: ["get_num_staff_needed"]})
+      analyze.add_menu_item({key_user_returns: 8, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
       run_menu_and_call_next(analyze)
   end
@@ -139,31 +139,20 @@ class DatabaseDriver
   
   def get_sold_time_locations
     create_menu  = Menu.new("Do you want to get all those that are sold out or not sold out?")
-    create_menu.add_menu_item({key_user_returns: 1, user_message: "Sold out", do_if_chosen: ["sold out"]})
-    create_menu.add_menu_item({key_user_returns: 2, user_message: "Not sold out", do_if_chosen: ["not sold out"]})
+    create_menu.add_menu_item({key_user_returns: 1, user_message: "Sold out", do_if_chosen: [true]})
+    create_menu.add_menu_item({key_user_returns: 2, user_message: "Not sold out", do_if_chosen: [false]})
     choice = run_menu(create_menu)[0]
-    if choice == "sold out"
-      puts LocationTime.where_sold_out(true)
-    else
-      puts LocationTime.where_sold_out(false)
-    end
+    puts LocationTime.where_sold_out(choice)
     analyze_menu
   end
   
   def get_movies_like_this
     create_menu = Menu.new("What do you want to look up?")
-    create_menu.add_menu_item({key_user_returns: 1, user_message: "Studios", do_if_chosen: ["studios"]})
-    create_menu.add_menu_item({key_user_returns: 2, user_message: "Ratings", do_if_chosen: ["ratings"]})
-    choice = run_menu(create_menu)[0]
-    if choice == "studios"
-      obj = user_choice_of_object_in_class(Studio)
-      puts Movie.where_match("studio_id", obj.id, "==")
-    elsif choice == "ratings"
-      obj = user_choice_of_object_in_class(Rating)
-      puts Movie.where_match("rating_id", obj.id, "==")
-    else
-      puts "Error: Problem with menu."
-    end
+    create_menu.add_menu_item({key_user_returns: 1, user_message: "Studios", do_if_chosen: ["studio_id", Studio]})
+    create_menu.add_menu_item({key_user_returns: 2, user_message: "Ratings", do_if_chosen: ["rating_id", Rating]})
+    choice = run_menu(create_menu)
+    obj = user_choice_of_object_in_class(choice[1])
+    puts Movie.where_match(choice[0], obj.id, "==")
     analyze_menu
   end
 
@@ -174,14 +163,19 @@ class DatabaseDriver
     create_menu.add_menu_item({key_user_returns: 1, user_message: "Available", do_if_chosen: [true]})
     create_menu.add_menu_item({key_user_returns: 2, user_message: "Not available", do_if_chosen: [false]})
     choice = run_menu(create_menu)[0]
-    if choice
-      puts Location.where_available(true)
-    else
-      puts Location.where_available(false)
-    end
+    puts Location.where_available(choice)
     analyze_menu
   end
 
+  # allows the user to select a time and see how many people need to work at that time
+  #
+  # runs the analyze menu
+  def get_num_staff_needed
+    time_loc = user_choice_of_object_in_class(Time)
+    puts "You will need #{time_loc.num_staff_needed} staff for that time."
+    analyze_menu
+  end
+  
     
   #########Update methods
   
@@ -247,9 +241,8 @@ class DatabaseDriver
     end
     time = user_choice_of_object_in_class(Time)
     movie = user_choice_of_object_in_class(Movie)
-    
+    l = LocationTime.new(location_id: loc.id, timeslot_id: time, movie_id: movie)
     success = try_to_update_database {
-      l = LocationTime.new(location_id: loc.id, timeslot_id: time, movie_id: movie)
       l.save_record
     }
     loc_time_menu
@@ -264,11 +257,11 @@ class DatabaseDriver
     staff = get_user_input("How many staff needed to run it?").to_i
     time_slots = get_user_input("How many movies can play a day?  Max of 6").to_i
     
-    while time_slots > 6 ||  time_slots < 0
-      time_slots = get_user_input("Invalid response.  Must be between 0 and 6.").to_i
+    l = Location.new(name: name, num_seats: seats, num_staff: staff, num_time_slots: time_slots)
+    while !l.valid_num_time_slots
+      time_slots = get_user_input("Invalid response.  Must be between 0 and #{l.max_num_time_slots}").to_i
     end  
     try_to_update_database { 
-      l = Location.new(name: name, num_seats: seats, num_staff: staff, num_time_slots: time_slots)
       l.save_record
     }
     theatre_menu

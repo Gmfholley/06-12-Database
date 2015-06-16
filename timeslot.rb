@@ -22,4 +22,16 @@ class Time
     "id: #{id}\t\ttime slot: #{time_slot}"
   end
   
+  # returns the total staff needed for a particular time slot
+  #
+  # returns an Integer
+  def num_staff_needed
+    sum = 0
+    staff_array = CONNECTION.execute("SELECT SUM(locations.num_staff) FROM locationtimes INNER JOIN times ON locationtimes.timeslot_id = times.id INNER JOIN locations ON locationtimes.location_id = locations.id WHERE times.id = #{id} GROUP BY locationtimes.location_id;")
+    staff_array.each do |hash|
+      sum += hash["SUM(locations.num_staff)"]
+    end
+    sum
+  end
+  
 end
