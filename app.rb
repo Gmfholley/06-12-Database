@@ -14,78 +14,100 @@ CONNECTION.results_as_hash = true
 CONNECTION.execute("PRAGMA foreign_keys = ON;")
 
 class DatabaseDriver
-
+  
+  # defines and runs Main Menu
+  #
+  # calls the main menu
   def main_menu
-      main_menu = Menu.new("What would you like to work on?")
-      main_menu.add_menu_item({key_user_returns: 1, user_message: "Work with movies.", do_if_chosen:  ["movie_menu"]})
-      main_menu.add_menu_item({key_user_returns: 2, user_message: "Work with theatres.", do_if_chosen: ["theatre_menu"]})
-      main_menu.add_menu_item({key_user_returns: 3, user_message: "Schedule movie time slots by theatre.", do_if_chosen: ["loc_time_menu"]})
-      main_menu.add_menu_item({key_user_returns: 4, user_message: "Run an analysis on my theatres.", do_if_chosen: ["analyze_menu"]})
-      user_wants = run_menu(main_menu)
-      params = user_wants.slice(1..-1) if user_wants.length > 1
-      call_method(user_wants.slice(0), params)
+      main = Menu.new("What would you like to work on?")
+      main.add_menu_item({key_user_returns: 1, user_message: "Work with movies.", do_if_chosen:  ["movie_menu"]})
+      main.add_menu_item({key_user_returns: 2, user_message: "Work with theatres.", do_if_chosen: ["theatre_menu"]})
+      main.add_menu_item({key_user_returns: 3, user_message: "Schedule movie time slots by theatre.", do_if_chosen: ["loc_time_menu"]})
+      main.add_menu_item({key_user_returns: 4, user_message: "Run an analysis on my theatres.", do_if_chosen: ["analyze_menu"]})
+      run_menu_and_call_next(main)
   end
-    
+  
+  # defines and runs the movie menu
+  #
+  # calls the theatre menu
   def movie_menu
-      movie_menu = Menu.new("What would you like to do with movies?")
-      movie_menu.add_menu_item({key_user_returns: 1, user_message: "Create a movie.", do_if_chosen: ["create_movie"]})
-      movie_menu.add_menu_item({key_user_returns: 2, user_message: "Update a movie.", do_if_chosen: ["update_object", Movie, "movie_menu"]})
-      movie_menu.add_menu_item({key_user_returns: 3, user_message: "Show me movies.", do_if_chosen: ["show_object", Movie, "movie_menu"]})
-      movie_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a movie.", do_if_chosen: ["delete_object", Movie, "movie_menu"]})
-      movie_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
+      movie = Menu.new("What would you like to do with movies?")
+      movie.add_menu_item({key_user_returns: 1, user_message: "Create a movie.", do_if_chosen: ["create_movie"]})
+      movie.add_menu_item({key_user_returns: 2, user_message: "Update a movie.", do_if_chosen: ["update_object", Movie, "movie_menu"]})
+      movie.add_menu_item({key_user_returns: 3, user_message: "Show me movies.", do_if_chosen: ["show_object", Movie, "movie_menu"]})
+      movie.add_menu_item({key_user_returns: 4, user_message: "Delete a movie.", do_if_chosen: ["delete_object", Movie, "movie_menu"]})
+      movie.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
-      user_wants = run_menu(movie_menu)
-      params = user_wants.slice(1..-1) if user_wants.length > 1
-      call_method(user_wants.slice(0), params)
+      run_menu_and_call_next(movie)
   end
   
+  # defines and runs the theatre menu
+  #
+  # runs the theatre menu
   def theatre_menu
-      theatre_menu = Menu.new("What would you like to do with theatres?")
-      theatre_menu.add_menu_item({key_user_returns: 1, user_message: "Create a theatre.", do_if_chosen: ["create_theatre"]})
-      theatre_menu.add_menu_item({key_user_returns: 2, user_message: "Update a theatre.", do_if_chosen: ["update_object", Location, "theatre_menu"]})
-      theatre_menu.add_menu_item({key_user_returns: 3, user_message: "Show me theatres.", do_if_chosen: ["show_object", Location, "theatre_menu"]})
-      theatre_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre.", do_if_chosen: ["delete_object", Location, "theatre_menu"]})
-      theatre_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
+      theatre = Menu.new("What would you like to do with theatres?")
+      theatre.add_menu_item({key_user_returns: 1, user_message: "Create a theatre.", do_if_chosen: ["create_theatre"]})
+      theatre.add_menu_item({key_user_returns: 2, user_message: "Update a theatre.", do_if_chosen: ["update_object", Location, "theatre_menu"]})
+      theatre.add_menu_item({key_user_returns: 3, user_message: "Show me theatres.", do_if_chosen: ["show_object", Location, "theatre_menu"]})
+      theatre.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre.", do_if_chosen: ["delete_object", Location, "theatre_menu"]})
+      theatre.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
-      user_wants = run_menu(theatre_menu)
-      params = user_wants.slice(1..-1) if user_wants.length > 1
-      call_method(user_wants.slice(0), params)
+      run_menu_and_call_next(theatre)
   end
   
+  # defines and runs the LocationTime menu
+  #
+  # runs the LocationTime menu
   def loc_time_menu
-      loc_time_menu = Menu.new("What would you like to do with movie time/theatre slots?")
-      loc_time_menu.add_menu_item({key_user_returns: 1, user_message: "Create a new theatre/time slot.", do_if_chosen:    
+      loc_time = Menu.new("What would you like to do with movie time/theatre slots?")
+      loc_time.add_menu_item({key_user_returns: 1, user_message: "Create a new theatre/time slot.", do_if_chosen:    
         ["create_loc_time"]})
-      loc_time_menu.add_menu_item({key_user_returns: 2, user_message: "Update a theatre/time slot.", do_if_chosen: 
+      loc_time.add_menu_item({key_user_returns: 2, user_message: "Update a theatre/time slot.", do_if_chosen: 
         ["update_object", LocationTime, "loc_time_menu"]})
-      loc_time_menu.add_menu_item({key_user_returns: 3, user_message: "Show me theatre/time slots.", do_if_chosen: 
+      loc_time.add_menu_item({key_user_returns: 3, user_message: "Show me theatre/time slots.", do_if_chosen: 
         ["show_object", LocationTime, "loc_time_menu"]})
-      loc_time_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre/time slot.", do_if_chosen: 
+      loc_time.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre/time slot.", do_if_chosen: 
         ["delete_loc_time"]})
-      loc_time_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
+      loc_time.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
-      user_wants = run_menu(loc_time_menu)
-      params = user_wants.slice(1..-1) if user_wants.length > 1
-      call_method(user_wants.slice(0), params)
+      run_menu_and_call_next(loc_time)
   end
   
+  # defines and runs the analyze menu
+  #
+  # runs the analyze menu
   def analyze_menu
-      analyze_menu = Menu.new("What would you like to see?")
-      analyze_menu.add_menu_item({key_user_returns: 1, user_message: "Get all time/theatres for a particular movie.", do_if_chosen: ["get_time_location_for_movie"]})
-      analyze_menu.add_menu_item({key_user_returns: 2, user_message: "Get all times for a particular theatre.", do_if_chosen: ["get_time_location_for_location"]})
-      analyze_menu.add_menu_item({key_user_returns: 3, user_message: "Get all movies played at this time.", do_if_chosen: ["get_all_movies_for_this_time"]})
-      analyze_menu.add_menu_item({key_user_returns: 4, user_message: "Get all time/theatres that are sold out or not sold out.", do_if_chosen: ["get_sold_time_locations"]})
-      analyze_menu.add_menu_item({key_user_returns: 5, user_message: "Get all movies from a particular studio or rating.", do_if_chosen: ["get_movies_like_this"]})
-      analyze_menu.add_menu_item({key_user_returns: 6, user_message: "Get all theatres that are booked or not fully booked.", do_if_chosen: ["get_available_locations"]})
+      analyze = Menu.new("What would you like to see?")
+      analyze.add_menu_item({key_user_returns: 1, user_message: "Get all time/theatres for a particular movie.", do_if_chosen: ["get_time_location_for_movie"]})
+      analyze.add_menu_item({key_user_returns: 2, user_message: "Get all times for a particular theatre.", do_if_chosen: ["get_time_location_for_location"]})
+      analyze.add_menu_item({key_user_returns: 3, user_message: "Get all movies played at this time.", do_if_chosen: ["get_all_movies_for_this_time"]})
+      analyze.add_menu_item({key_user_returns: 4, user_message: "Get all time/theatres that are sold out or not sold out.", do_if_chosen: ["get_sold_time_locations"]})
+      analyze.add_menu_item({key_user_returns: 5, user_message: "Get all movies from a particular studio or rating.", do_if_chosen: ["get_movies_like_this"]})
+      analyze.add_menu_item({key_user_returns: 6, user_message: "Get all theatres that are booked or not fully booked.", do_if_chosen: ["get_available_locations"]})
       
-      analyze_menu.add_menu_item({key_user_returns: 7, user_message: "Return to main menu.", do_if_chosen: 
+      analyze.add_menu_item({key_user_returns: 7, user_message: "Return to main menu.", do_if_chosen: 
           ["main_menu"]})
-      user_wants = run_menu(analyze_menu)
-      params = user_wants.slice(1..-1) if user_wants.length > 1
-      call_method(user_wants.slice(0), params)
+      run_menu_and_call_next(analyze)
   end
   
   
+  # runs Menu object and calls next method
+  #
+  # Menu - Menu object
+  #
+  # calls next method from user
+  def run_menu_and_call_next(menu)
+    user_wants = run_menu(menu)
+    params = user_wants.slice(1..-1) if user_wants.length > 1
+    call_method(user_wants.slice(0), params)
+  end
+  
+  # runs the method name with optional params on this Class's object
+  #
+  # method_name         - String name of the method in this object to call
+  # params (optional)   - String, Integer, Object, or Class of the parameters for the method
+  #
+  # calls next method
   def call_method(method_name, params=nil)
       if params.nil?
         self.method(method_name).call
@@ -111,7 +133,6 @@ class DatabaseDriver
   
   def get_all_movies_for_this_time
     chosen_time = user_choice_of_object_in_class(Time)
-    binding.pry
     puts chosen_time.location_times
     analyze_menu
   end
@@ -341,8 +362,9 @@ class DatabaseDriver
   def try_to_update_database
     begin
       yield
+      puts "Saved to the database."
     rescue Exception => msg
-      puts msg
+      puts "Not saved: #{msg}"
     end
   end
   
