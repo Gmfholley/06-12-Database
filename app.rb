@@ -73,7 +73,7 @@ class DatabaseDriver
       analyze_menu = Menu.new("What would you like to see?")
       analyze_menu.add_menu_item({key_user_returns: 1, user_message: "Get all time/theatres for a particular movie.", do_if_chosen: ["get_time_location_for_movie"]})
       analyze_menu.add_menu_item({key_user_returns: 2, user_message: "Get all times for a particular theatre.", do_if_chosen: ["get_time_location_for_location"]})
-      analyze_menu.add_menu_item({key_user_returns: 3, user_message: "Get all movies played at this time.", do_if_chosen: ["get_all_movie_times"]})
+      analyze_menu.add_menu_item({key_user_returns: 3, user_message: "Get all movies played at this time.", do_if_chosen: ["get_all_movies_for_this_time"]})
       analyze_menu.add_menu_item({key_user_returns: 4, user_message: "Get all time/theatres that are sold out or not sold out.", do_if_chosen: ["get_sold_time_locations"]})
       analyze_menu.add_menu_item({key_user_returns: 5, user_message: "Get all movies from a particular studio or rating.", do_if_chosen: ["get_movies_like_this"]})
       analyze_menu.add_menu_item({key_user_returns: 6, user_message: "Get all theatres that are booked or not fully booked.", do_if_chosen: ["get_available_locations"]})
@@ -109,8 +109,9 @@ class DatabaseDriver
     analyze_menu
   end
   
-  def get_all_movie_times
-    chosen_time = user_choice_of_object_in_class(Movie)
+  def get_all_movies_for_this_time
+    chosen_time = user_choice_of_object_in_class(Time)
+    binding.pry
     puts chosen_time.location_times
     analyze_menu
   end
@@ -142,6 +143,22 @@ class DatabaseDriver
     else
       puts "Error: Problem with menu."
     end
+    analyze_menu
+  end
+
+
+
+  def get_available_locations
+    create_menu  = Menu.new("Do you want to get all available or not available?")
+    create_menu.add_menu_item({key_user_returns: 1, user_message: "Available", do_if_chosen: [true]})
+    create_menu.add_menu_item({key_user_returns: 2, user_message: "Not available", do_if_chosen: [false]})
+    choice = run_menu(create_menu)[0]
+    if choice
+      puts Location.where_available(true)
+    else
+      puts Location.where_available(false)
+    end
+    analyze_menu
   end
 
     
@@ -165,11 +182,12 @@ class DatabaseDriver
   end
   
   ##############Delete Methods
-  
+  # deletes the user's chosen LocationTime boejct
   # Must have a separate delete method for LocationTime because it has a composite Primary Key
   #
   # calls the location time menu again
-  
+  #
+  #
   def delete_loc_time
     delete_loc = user_choice_of_object_in_class(LocationTime)
     try_to_update_database{
@@ -178,6 +196,13 @@ class DatabaseDriver
     loc_time_menu
   end
   
+  # deletes the object chosen by the user
+  #
+  # args - Array
+  # =>    Array[0] --> class name of the object to delete
+  # =>    Array[1] --> method to call next time
+  #
+  # calls next method to run
   def delete_object(args)
     class_name = args[0]
     next_method_to_call = args[1]
@@ -189,6 +214,9 @@ class DatabaseDriver
   end
   
   ############Create Methods
+  # gets information needed to create and save to database a LocationTime object
+  #
+  # calls loc_time_menu
   def create_loc_time
     is_available = false
     while !is_available
@@ -203,13 +231,12 @@ class DatabaseDriver
       l = LocationTime.new(location_id: loc.id, timeslot_id: time, movie_id: movie)
       l.save_record
     }
-    if !success
-      puts "New record not saved.  You may have tried to double book."
-    end
     loc_time_menu
   end
   
-  
+  # gets information needed to create and save to database a Location object
+  #
+  # calls theatre_menu
   def create_theatre
     name = get_user_input("What is the name of the new theatre?")
     seats = get_user_input("How many seats does the theatre hold?").to_i
@@ -218,38 +245,34 @@ class DatabaseDriver
     
     while time_slots > 6 ||  time_slots < 0
       time_slots = get_user_input("Invalid response.  Must be between 0 and 6.").to_i
-    end
-    
+    end  
     try_to_update_database { 
       l = Location.new(name: name, num_seats: seats, num_staff: staff, num_time_slots: time_slots)
       l.save_record
     }
-    
     theatre_menu
   end
   
   
+  
+  
+  # gets all the input for a movie and saves to database
+  #
+  # goes back to movie_menu
   def create_movie
     n = get_user_input("What is the name of the movie?")
     d = get_user_input("Enter a brief description.")
     l = get_user_input("How long is it?(in minutes)").to_i
-    
     while l < 0
       l = get_user_input("Invalid response.  Must be greater than 0.").to_i
     end
-
     studio = user_choice_of_object_in_class(Studio)
     rating = user_choice_of_object_in_class(Rating)
-    
-    if studio == "create_studio"
-      puts "Sorry.  I did not create this menu item yet." # create_studio
-    end
     
     try_to_update_database{ 
       l = Movie.new(name: n, description: d, length: l, rating_id: rating, studio_id: studio)
       l.save_record
     }
-    
     movie_menu
   end  
   

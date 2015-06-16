@@ -12,5 +12,9 @@ class Studio
     @name = args[:name] || args["name"]
   end
   
+  def to_s
+    "id: #{id}\t\t name: #{name}"
+  end
+  
   
 end

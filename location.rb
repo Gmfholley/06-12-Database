@@ -47,4 +47,13 @@ class Location
     LocationTime.where_match("location_id", id, "==")
   end
   
+  def self.where_available(available=true)
+    if available
+     Location.as_objects(CONNECTION.execute("SELECT COUNT(*) Loc, *  FROM locationtimes INNER JOIN locations ON locationtimes.location_id = locations.id GROUP BY locations.id, locations.name HAVING COUNT(*) < locations.num_time_slots;"))
+   else
+     Location.as_objects(CONNECTION.execute("SELECT COUNT(*) Loc, *  FROM locationtimes INNER JOIN locations ON locationtimes.location_id = locations.id GROUP BY locations.id, locations.name HAVING COUNT(*) >= locations.num_time_slots;"))
+   end
+    
+  end
+  
 end

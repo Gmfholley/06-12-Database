@@ -12,7 +12,9 @@ class Rating
     @rating = args[:rating] || args["rating"]
   end
   
-  
+  def to_s
+    "id: #{id}\t\tname: #{rating}"
+  end
   
   
 end

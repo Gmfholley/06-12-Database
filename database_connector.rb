@@ -153,7 +153,7 @@ module DatabaseConnector
     self.class.to_s.pluralize
   end
   
-  # returns a String of the database_field_names for SQL
+  # returns an Array of the database_field_names for SQL
   def database_field_names
     attributes = []
     instance_variables.each do |i|
@@ -204,6 +204,10 @@ module DatabaseConnector
     stringify
   end
   
+  def string_parameters_and_values
+    
+  end
+  
   # checks if this object has been saved to the database yet
   #
   # returns Boolean
@@ -224,6 +228,19 @@ module DatabaseConnector
     end
   end
 
+  # updates the field of one column if records meet criteria
+  #
+  # change_field            - String of the change field
+  # change_value            - Value (Integer or String) to change in the change field
+  #
+  # returns nothing
+  def update_record(change_field, change_value)
+    if change_value.is_a? String
+      change_value = add_quotes_to_string(change_value)
+    end
+    CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE id = #{@id};")
+  end
+  
   # updates the field of one column if records meet criteria
   #
   # change_field            - String of the change field

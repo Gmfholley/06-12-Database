@@ -17,4 +17,9 @@ class Time
   def location_times
     LocationTime.where_match("timeslot_id", id, "==")
   end
+  
+  def to_s
+    "id: #{id}\t\ttime slot: #{time_slot}"
+  end
+  
 end
