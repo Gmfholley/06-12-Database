@@ -91,7 +91,6 @@ class Menu
     all_responses = []
     menu_items.each { |x| all_responses.push(x.key_user_returns)}
     return all_responses
-    binding.pry
   end
   
 end
