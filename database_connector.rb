@@ -110,7 +110,9 @@ module DatabaseConnector
       self.as_objects(CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE #{field_name} #{relationship} #{field_value};"))
     end
     
-    
+    # returns an Array of Hashes containing the field name information for the table
+    #
+    # returns an Array
     def get_table_info
       CONNECTION.execute("PRAGMA table_info(#{self.to_s.pluralize});")
     end
@@ -213,14 +215,13 @@ module DatabaseConnector
   #
   # returns Boolean if unable to save
   def save_record
-   # if @id == ""
-   binding.pry
+   if @id == ""
       CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
       @id = CONNECTION.last_insert_row_id if @id == ""
-   #   true
-   # else
-   #   false
-   # end
+      true
+   else
+      false
+    end
   end
 
   # updates the field of one column if records meet criteria

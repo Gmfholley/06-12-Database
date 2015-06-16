@@ -93,6 +93,16 @@ class LocationTime
     end
   end
   
+  # overwrites Modules update_record method because this object has a composite key
+  #
+  # returns Boolean
+  def update_record(change_field, change_value)
+    if change_value.is_a? String
+      change_value = add_quotes_to_string(change_value)
+    end
+    CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE location_id = #{@location_id} AND timeslot_id = #{@timeslot_id};")
+  end
+  
   # returns an Array of objects of all movies at this location
   #
   # returns an Array

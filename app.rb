@@ -29,7 +29,7 @@ class DatabaseDriver
   def movie_menu
       movie_menu = Menu.new("What would you like to do with movies?")
       movie_menu.add_menu_item({key_user_returns: 1, user_message: "Create a movie.", do_if_chosen: ["create_movie"]})
-      movie_menu.add_menu_item({key_user_returns: 2, user_message: "Update a movie.", do_if_chosen: ["update_movie"]})
+      movie_menu.add_menu_item({key_user_returns: 2, user_message: "Update a movie.", do_if_chosen: ["update_object", Movie, "movie_menu"]})
       movie_menu.add_menu_item({key_user_returns: 3, user_message: "Show me movies.", do_if_chosen: ["show_movies"]})
       movie_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a movie.", do_if_chosen: ["delete_object", Movie, "movie_menu"]})
       movie_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
@@ -42,7 +42,7 @@ class DatabaseDriver
   def theatre_menu
       theatre_menu = Menu.new("What would you like to do with theatres?")
       theatre_menu.add_menu_item({key_user_returns: 1, user_message: "Create a theatre.", do_if_chosen: ["create_theatre"]})
-      theatre_menu.add_menu_item({key_user_returns: 2, user_message: "Update a theatre.", do_if_chosen: ["update_theatre"]})
+      theatre_menu.add_menu_item({key_user_returns: 2, user_message: "Update a theatre.", do_if_chosen: ["update_object", Location, "theatre_menu"]})
       theatre_menu.add_menu_item({key_user_returns: 3, user_message: "Show me theatres.", do_if_chosen: ["show_theatres"]})
       theatre_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre.", do_if_chosen: ["delete_object", Location, "theatre_menu"]})
       theatre_menu.add_menu_item({key_user_returns: 5, user_message: "Return to main menu.", do_if_chosen: 
@@ -57,7 +57,7 @@ class DatabaseDriver
       loc_time_menu.add_menu_item({key_user_returns: 1, user_message: "Create a new theatre/time slot.", do_if_chosen:    
         ["create_loc_time"]})
       loc_time_menu.add_menu_item({key_user_returns: 2, user_message: "Update a theatre/time slot.", do_if_chosen: 
-        ["update_loc_time"]})
+        ["update_object", LocationTime, "loc_time_menu"]})
       loc_time_menu.add_menu_item({key_user_returns: 3, user_message: "Show me theatre/time slots.", do_if_chosen: 
         ["show_loc_times"]})
       loc_time_menu.add_menu_item({key_user_returns: 4, user_message: "Delete a theatre/time slot.", do_if_chosen: 
@@ -147,59 +147,21 @@ class DatabaseDriver
     
   #########Update methods
   
-  def update_loc_time
-    
-    update_loc = user_choice_of_object_in_class(LocationTime)
-    
-    
-    fields = update_loc.database_field_names
-    create_menu = Menu.new("Which field do you want to update?")
-    fields.each_with_index do |field, x|
-      create_menu.add_menu_item({key_user_returns: x + 1, user_message: field, do_if_chosen:    
-      [field]})
-    end
-    choice = run_menu(create_menu)[0]
+  def update_object(args)
+    class_name = args[0]
+    next_method_to_call = args[1]
+    object = user_choice_of_object_in_class(class_name)
+    choice = user_choice_of_field(object)
     new_value = get_user_input("What should the value of #{choice} be?")
-    ###### PROBLEM HERE GETTING INTEGERS
-    try_to_update_database{
-      update_loc.update_record(choice, new_value)
-    }
-    loc_time_menu
-  end
-  
-  def update_theatre
-    update_loc = user_choice_of_object_in_class(Location)
     
-    fields = update_loc.database_field_names
-    create_menu = Menu.new("Which field do you want to update?")
-    fields.each_with_index do |field, x|
-      create_menu.add_menu_item({key_user_returns: x + 1, user_message: field, do_if_chosen:    
-      [field]})
+    if type_of_field_in_database(class_name, choice) == "INTEGER"
+      new_value = new_value.to_i
     end
-    choice = run_menu(create_menu)[0]
-    new_value = get_user_input("What should the value of #{choice} be?")
     
     try_to_update_database{
-      update_loc.update_record(choice, new_value)
+      object.update_record(choice, new_value)
     }
-    theatre_menu
-  end
-  
-  def update_movie
-    update_loc = user_choice_of_object_in_class(Movie)
-    
-    
-    fields = update_loc.database_field_names
-    create_menu = Menu.new("Which field do you want to update?")
-    fields.each_with_index do |field, x|
-      create_menu.add_menu_item({key_user_returns: x + 1, user_message: field, do_if_chosen:    
-      [field]})
-    end
-    choice = run_menu(create_menu)[0]
-    new_value = get_user_input("What should the value of #{choice} be?")
-    
-    try_to_update_database {update_loc.update_record(choice, new_value)}
-    movie_menu
+    call_method(next_method_to_call)
   end
   
   ##############Delete Methods
@@ -234,23 +196,9 @@ class DatabaseDriver
       is_available = loc.has_available_time_slot?
       puts "That theatre is fully booked.  Try again." if !is_available
     end
+    time = user_choice_of_object_in_class(Time)
+    movie = user_choice_of_object_in_class(Movie)
     
-    
-    all_times = Time.all
-    create_menu = Menu.new("Pick which time slot you are booking for.")
-    all_times.each_with_index do |time, x|
-      create_menu.add_menu_item({key_user_returns: x + 1, user_message: time.time_slot.to_s, do_if_chosen:    
-      [time.id]})
-    end
-    time = run_menu(create_menu)[0]
-    
-    all_movies = Movie.all
-    create_menu = Menu.new("Pick which movie you are booking for.")
-    all_movies.each_with_index do |movie, x|
-      create_menu.add_menu_item({key_user_returns: x + 1,user_message: movie.to_s, do_if_chosen:    
-      [movie.id]})
-    end
-    movie = run_menu(create_menu)[0]
     success = try_to_update_database {
       l = LocationTime.new(location_id: loc.id, timeslot_id: time, movie_id: movie)
       l.save_record
@@ -259,11 +207,6 @@ class DatabaseDriver
       puts "New record not saved.  You may have tried to double book."
     end
     loc_time_menu
-    # @location_id = args[:location_id] || args["location_id"]
-    # @timeslot_id = args[:timeslot_id] || args["timeslot_id"]
-    # @movie_id = args[:movie_id] || args["movie_id"]
-    # @num_tickets_sold = args["num_tickets_sold"] || 0
-    
   end
   
   
@@ -283,12 +226,6 @@ class DatabaseDriver
     }
     
     theatre_menu
-    # @id = args["id"] || ""
-    # @name = args[:name] || args["name"]
-    # @num_seats = args[:num_seats] || args["num_seats"]
-    # @num_staff = args[:num_staff] || args["num_staff"]
-    # @num_time_slots = args[:num_time_slots] || args["num_time_slots"]
-    
   end
   
   
@@ -300,23 +237,9 @@ class DatabaseDriver
     while l < 0
       l = get_user_input("Invalid response.  Must be greater than 0.").to_i
     end
-    
-    all_studios = Studio.all
-    create_menu = Menu.new("Pick which studio the file belongs to")
-    all_studios.each_with_index do |studio, x|
-      create_menu.add_menu_item({key_user_returns: x + 1,user_message: studio.name, do_if_chosen:    
-      [studio.id]})
-    end
-    create_menu.add_menu_item({key_user_returns: all_studios.length, user_message: "Studio is not listed.", do_if_chosen: "create_studio"})
-    studio = run_menu(create_menu)[0]
-    
-    all_ratings = Rating.all
-    create_menu = Menu.new("Pick what the movie is rated")
-    all_ratings.each_with_index do |r, x|
-      create_menu.add_menu_item({key_user_returns: x + 1,user_message: r.rating, do_if_chosen:    
-      [r.id]})
-    end
-    rating = run_menu(create_menu)[0]
+
+    studio = user_choice_of_object_in_class(Studio)
+    rating = user_choice_of_object_in_class(Rating)
     
     if studio == "create_studio"
       puts "Sorry.  I did not create this menu item yet." # create_studio
@@ -328,13 +251,6 @@ class DatabaseDriver
     }
     
     movie_menu
-    # @id = args["id"] || ""
-    # @name = args[:name] || args["name"]
-    # @description = args[:description] || args["description"]
-    # @rating_id = args[:rating_id] || args["rating_id"]
-    # @studio_id = args[:studio_id] || args["studio_id"]
-    # @length = args[:length] || args["length"]
-    
   end  
   
   
@@ -373,6 +289,32 @@ class DatabaseDriver
         [object]})
     end
     return run_menu(create_menu)[0]
+  end
+  
+  # returns the field name that the user wants to change
+  #
+  # returns a String of the field name
+  def user_choice_of_field(object)
+    fields = object.database_field_names
+    create_menu = Menu.new("Which field do you want to update?")
+    fields.each_with_index do |field, x|
+      create_menu.add_menu_item({key_user_returns: x + 1, user_message: field, do_if_chosen:    
+      [field]})
+    end
+    run_menu(create_menu)[0]
+  end
+  
+  # returns this object's data type
+  #
+  # returns a String or False if it cannot be found
+  def type_of_field_in_database(class_name, field_name)
+    all_fields = class_name.get_table_info
+    all_fields.each do |field|
+      if field["name"] == field_name
+        return field["type"]
+      end
+    end
+    false
   end
   
   # meant to be run with a block
@@ -426,33 +368,6 @@ end
 
 
 c = DatabaseDriver.new
-#c.try_to_run
 
-# puts c.loc_time_menu
-# puts c.theatre_menu
- puts c.main_menu
-# puts c.movie_menu
-
-#
-# m = Movie.create_from_database(1)
-# puts m.rating
-# puts m.studio
-# all_times = m.location_times
-# puts "Here is when this movie plays:"
-#
-#
-# all_times.each do |time|
-#   puts time
-#   puts "All at this location:"
-#   puts time.all_at_this_location
-#
-#   puts "\nAll at this time:"
-#   puts time.all_at_this_time
-#
-#   puts "\nAll at this movie:"
-#   puts time.all_of_this_movie
-#
-# end
-
-
+puts c.main_menu
 
