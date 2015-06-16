@@ -26,6 +26,14 @@ class Location
     "id: #{id}\tname: #{name}\tnumber of seats: #{num_seats}\tnumber of staff: #{num_staff}\tnumber of movies played a day: #{num_time_slots}"
   end
   
+  def valid_num_time_slots?
+    num_time_slots < max_num_time_slots && num_time_slots > 0
+  end
+  
+  def max_num_time_slots
+    CONNECTION.execute("SELECT COUNT(*) FROM times;")
+  end
+  
   # returns a Boolean if this location has available time slots
   #
   # returns Boolean

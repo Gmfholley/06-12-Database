@@ -83,7 +83,7 @@ class LocationTime
   # saves record with Module's reord if condition met
   # overwrites Modules save_record method
   #
-  # returns Boolean
+  # returns Boolean 
   def save_record
     if location.has_available_time_slot?
       save
