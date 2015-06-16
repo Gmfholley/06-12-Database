@@ -172,12 +172,16 @@ module DatabaseConnector
   
   # returns an Array of this object's parameters
   #
-  # returns an Array
+  # returns an Array with strings already added
   def self_values
     self_values = []
     database_field_names.each do |params|
       unless params == "id"
-        self_values << self.send(params)
+        value = self.send(params)
+        if value.is_a? String
+          value = add_quotes_to_string(value)
+        end
+        self_values << value
       end
     end
     self_values
@@ -185,27 +189,29 @@ module DatabaseConnector
   
   # string of this object's parameters for SQL
   def stringify_self
-    stringify = ""
-    self_values.each_with_index do |param, index|
-      case index
-      when 0
-        joiner = ""
-      else
-        joiner = ", "
-      end
-      if param.is_a? Integer
-        stringify += joiner + param.to_s
-      elsif param.is_a? String
-        stringify += joiner + "'#{param}'"
-      else
-        stringify = joiner + "'#{param.to_s}'"
-      end
-    end
-    stringify
+    self_values.join(", ")
   end
   
-  def string_parameters_and_values
-    
+  # string of the object's parameters = to their values
+  # ready for a SQL Update Statement!!
+  #
+  # returns String
+  def parameters_and_values_sql_string
+    #first get an array of equal signs
+    c = Array.new(self_values.length, "=")
+    final_array = []
+    # Then zip all three arrays together
+    # Ex.  field_names  =[p1, p2, p3] 
+    #      c            = ["=", "=", "="]
+    #      self_values  = [1, 3, "'string'"]
+    #  zip =>            [[[p1, "="], 1], [[p2, "="], 3, [[p3, "="], "'string'"]]
+    zip_array = database_field_names.zip(c).zip(self_values)
+    zip_array.each do |row|
+      #             =>  [["p1 = 1"], ["p2 = 3"], ["p3 = 'string'"]]
+      final_array <<  row.flatten.join(" ")
+    end
+    # => "p1 = 1, p2 = 3, p3 = 'string'"
+    final_array.join(", ")s
   end
   
   # checks if this object has been saved to the database yet
@@ -217,28 +223,24 @@ module DatabaseConnector
   
   # creates a new record in the table for this object
   #
-  # returns Boolean if unable to save
+  # returns Integer or nothing
   def save_record
-   if @id == ""
+   if !saved_already?
       CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
-      @id = CONNECTION.last_insert_row_id if @id == ""
-      true
+      @id = CONNECTION.last_insert_row_id
    else
-      false
+      update_record
     end
   end
-
-  # updates the field of one column if records meet criteria
-  #
-  # change_field            - String of the change field
-  # change_value            - Value (Integer or String) to change in the change field
+  
+  # updates all values (except ID) in the record
   #
   # returns nothing
-  def update_record(change_field, change_value)
+  def update_record
     if change_value.is_a? String
       change_value = add_quotes_to_string(change_value)
     end
-    CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE id = #{@id};")
+    CONNECTION.execute("UPDATE #{table} SET #{parameters_and_values_sql_string} WHERE id = #{@id};")
   end
   
   # updates the field of one column if records meet criteria
@@ -247,7 +249,7 @@ module DatabaseConnector
   # change_value            - Value (Integer or String) to change in the change field
   #
   # returns nothing
-  def update_record(change_field, change_value)
+  def update_field(change_field, change_value)
     if change_value.is_a? String
       change_value = add_quotes_to_string(change_value)
     end
