@@ -241,7 +241,7 @@ class DatabaseDriver
     end
     time = user_choice_of_object_in_class(Time)
     movie = user_choice_of_object_in_class(Movie)
-    l = LocationTime.new(location_id: loc.id, timeslot_id: time, movie_id: movie)
+    l = LocationTime.new(location_id: loc.id, timeslot_id: time.id, movie_id: movie.id)
     success = try_to_update_database {
       l.save_record
     }
@@ -326,6 +326,7 @@ class DatabaseDriver
   #
   # returns a String of the field name
   def user_choice_of_field(object)
+    
     fields = object.database_field_names
     create_menu = Menu.new("Which field do you want to update?")
     fields.each_with_index do |field, x|

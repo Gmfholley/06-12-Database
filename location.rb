@@ -2,7 +2,10 @@ require_relative 'database_connector.rb'
 
 class Location
   include DatabaseConnector
-
+  alias_method :save, :save_record
+  alias_method :update_r, :update_record
+  alias_method :update_f, :update_field
+  
   attr_reader :name, :num_seats, :num_staff, :num_time_slots, :id
 
   # initializes object
@@ -20,6 +23,7 @@ class Location
     @num_seats = args[:num_seats] || args["num_seats"]
     @num_staff = args[:num_staff] || args["num_staff"]
     @num_time_slots = args[:num_time_slots] || args["num_time_slots"]
+    @errors = []
   end
 
   def to_s
@@ -63,5 +67,73 @@ class Location
    end
     
   end
+  
+  # put your business rules here, and it returns Boolean to indicate if it is valid
+  #
+  # returns Boolean
+  def valid_data?
+    @errors = []
+    
+    # check name exists and is not empty
+    @errors << "Name cannot be empty." if name.empty?
+    
+    # check number of seats exists and is an integer > 0
+    @errors << "Number of seats cannot be empty." if num_seats.to_s.empty?
+    if num_seats.is_a? Integer
+      if num_seats < 0
+        @errors << "Number of seats must be greater than 0."
+      end
+    else
+      @errors << "Number of seats must be a number." 
+    end
+    
+    # check number of staff exists and is an integer > 0
+    @errors << "Number of staff cannot be empty." if num_staff.to_s.empty?
+    if num_staff.is_a? Integer
+      if num_staff < 0
+        @errors << "Number of staff must be greater than 0."
+      end
+    else
+      @errors << "Number of staff must be a number." 
+    end
+    
+    # check number of time slots to make sure they exist and are valid
+    @errors << "Number of time slots cannot be empty." if num_time_slots.to_s.empty?
+    if num_time_slots.is_a? Integer
+      if !valid_num_time_slots?
+        @errors << "You cannot have more possible time slots than are available in the day."
+      end
+    else
+      @errors << "Number of staff must be a number." 
+    end
+    
+  end
+  
+  # saves record if data is valid or returns false
+  #
+  # returns Truthy if saved or false if not saved
+  def save_record
+    if valid_data?
+      #call from the module
+      save
+    else
+      false
+    end
+  end
+  
+  # updates record if data is valid or returns false
+  #
+  # returns Truthy if saved or false if not saved
+  def update_record
+    if valid_data?
+      #call from the module
+      update
+    else
+      false
+    end
+  end
+  
+  def update_field(field_name, field_value)
+    if valid_data?
   
 end

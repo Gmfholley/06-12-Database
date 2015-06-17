@@ -85,7 +85,7 @@ class LocationTime
   #
   # returns Boolean 
   def save_record
-    if location.has_available_time_slot?
+    if Location.create_from_database(location_id).has_available_time_slot?
       save
       true
     else

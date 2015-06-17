@@ -39,7 +39,6 @@ module DatabaseConnector
       field_names_and_types.each do |array|
         array[1] = array[1].upcase + ","
       end
-      field_names_and_types.last[1] = field_names_and_types.last[1].remove(/,/)
       if !field_names_and_types.first[1].include?("PRIMARY KEY")
         field_names_and_types.first[1] = field_names_and_types.first[1].remove(/,/) + " PRIMARY KEY,"
       end
@@ -211,7 +210,7 @@ module DatabaseConnector
       final_array <<  row.flatten.join(" ")
     end
     # => "p1 = 1, p2 = 3, p3 = 'string'"
-    final_array.join(", ")s
+    final_array.join(", ")
   end
   
   # checks if this object has been saved to the database yet
@@ -230,7 +229,7 @@ module DatabaseConnector
       @id = CONNECTION.last_insert_row_id
    else
       update_record
-    end
+   end
   end
   
   # updates all values (except ID) in the record
