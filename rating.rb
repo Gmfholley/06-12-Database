@@ -7,7 +7,7 @@ class Rating
   attr_reader :id
   attr_accessor :rating
   
-  def initialize(args)
+  def initialize(args={})
     @id = args["id"] || ""
     @rating = args[:rating] || args["rating"]
     @errors = []

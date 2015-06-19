@@ -7,8 +7,8 @@ require_relative 'database_connector.rb'
 class Movie
   include DatabaseConnector
   
-  attr_accessor :name, :description, :length, :id
-  attr_reader :studio_id, :rating_id
+  attr_accessor :name, :description, :length, :studio_id, :rating_id
+  attr_reader :id
   
   # initializes object
   #
@@ -19,7 +19,7 @@ class Movie
   #             studio_id     - Integer of the studio_id in studios table
   #             length        - Integer of the length of the movie
   #
-  def initialize(args)
+  def initialize(args={})
     @id = args["id"] || ""
     @name = args[:name] || args["name"]
     @description = args[:description] || args["description"]
@@ -34,7 +34,20 @@ class Movie
   def to_s
     "id:\t#{@id}\t\tname:\t#{name}\t\trating:\t#{rating}\t\tstudio:\t#{studio}\t\tlength:\t#{length}"
   end
-
+  
+  # returns a Boolean if it is ok to delete
+  #
+  # id - Integer of the id to delete
+  #
+  # returns Boolean
+  def self.ok_to_delete?(id)
+    if LocationTime.where_match("movie_id", id, "==").length > 0
+      false
+    else
+      true
+    end
+  end
+  
   # returns the rating
   #
   # returns String
@@ -58,5 +71,47 @@ class Movie
     LocationTime.where_match("movie_id", id, "==")
   end
   
+  # put your business rules here, and it returns Boolean to indicate if it is valid
+  #
+  # returns Boolean
+  def valid?
+    @errors = []
+    # check thename exists and is not empty
+    if name.empty?
+      @errors << {message: "Name cannot be empty.", variable: "name"}
+    end
   
+    # check the description exists and is not empty
+    if description.empty?
+      @errors << {message: "Description cannot be empty.", variable: "description"}
+    end
+    
+    # check the description exists and is not empty
+    if studio_id.empty?
+      @errors << {message: "Studio id cannot be empty.", variable: "studio_id"}
+    elsif studio.empty?
+      @errors << {message: "Studio id must be a member of the studios table.", variable: "studio_id"}
+    end      
+    
+    # check the description exists and is not empty
+    if rating_id.empty?
+      @errors << {message: "Rating id cannot be empty.", variable: "rating_id"}
+    elsif rating.empty?
+      @errors << {message: "Rating id must be a member of the ratings table.", variable: "rating_id"}
+    end
+    
+    # checks the number of time slots
+    if length.to_s.empty?
+      @errors << {message: "Length cannot be empty.", variable: "length"}
+    elsif ! length.is_a? Integer
+      if length < 0
+        @errors << {message: "Length must be greater than 0.", variable: "length"}
+      end
+    else
+      @errors << {message: "Length must be a number.", variable: "length"}
+    end
+  
+    # returns whether @errors is empty
+    @errors.empty?
+  end
 end

@@ -15,7 +15,7 @@ class Studio
   #         - name - String of the name
   #
   # returns an instance of the object
-  def initialize(args)
+  def initialize(args={})
     @id = args["id"] || ""
     @name = args[:name] || args["name"]
   end
