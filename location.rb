@@ -2,11 +2,9 @@ require_relative 'database_connector.rb'
 
 class Location
   include DatabaseConnector
-  alias_method :save, :save_record
-  alias_method :update_r, :update_record
-  alias_method :update_f, :update_field
   
-  attr_reader :name, :num_seats, :num_staff, :num_time_slots, :id
+  attr_reader :id
+  attr_accessor :name, :num_seats, :num_staff, :num_time_slots, :errors
 
   # initializes object
   #
@@ -17,7 +15,7 @@ class Location
   #             num_staff         - Integer of the number of staff who have to work this theatre
   #             num_time_slots    - Integer of the number of time slots that this theatre can have a movie play
   #
-  def initialize(args)
+  def initialize(args={})
     @id = args["id"] || ""
     @name = args[:name] || args["name"]
     @num_seats = args[:num_seats] || args["num_seats"]
@@ -30,16 +28,12 @@ class Location
     "id: #{id}\tname: #{name}\tnumber of seats: #{num_seats}\tnumber of staff: #{num_staff}\tnumber of movies played a day: #{num_time_slots}"
   end
   
-  def valid_num_time_slots?
-    num_time_slots < max_num_time_slots && num_time_slots > 0
-  end
-  
   def max_num_time_slots
-    CONNECTION.execute("SELECT COUNT(*) FROM times;")
-  end
-  
+    CONNECTION.execute("SELECT COUNT(*) FROM times;").first[0]
+  end  
+       
   # returns a Boolean if this location has available time slots
-  #
+  #    
   # returns Boolean
   def has_available_time_slot?
     self.all_time_slots.length < num_time_slots
@@ -68,72 +62,58 @@ class Location
     
   end
   
+  def self.ok_to_delete?(id)
+    if LocationTime.where_match("location_id", id, "==").length > 0
+        false
+    else
+        true
+    end
+  end
+  
   # put your business rules here, and it returns Boolean to indicate if it is valid
   #
   # returns Boolean
-  def valid_data?
+  def valid?
     @errors = []
+    # check thename exists and is not empty
+    if name.empty?
+      @errors << {message: "Name cannot be empty.", variable: "name"}
+    end
     
-    # check name exists and is not empty
-    @errors << "Name cannot be empty." if name.empty?
+    # checks the number of time slots
+    if num_time_slots.to_s.empty?
+      @errors << {message: "Number of time slots cannot be empty.", variable: "num_time_slots"}
+    elsif num_time_slots.is_a? Integer
+      if num_time_slots > max_num_time_slots || num_time_slots < 0
+        @errors << {message: "You must have between 0 and #{max_num_time_slots}.", variable: "num_time_slots"}
+      end
+    else
+      @errors << {message: "Number of staff must be a number.", variable: "num_time_slots"}
+    end
     
     # check number of seats exists and is an integer > 0
-    @errors << "Number of seats cannot be empty." if num_seats.to_s.empty?
-    if num_seats.is_a? Integer
-      if num_seats < 0
-        @errors << "Number of seats must be greater than 0."
+    if num_seats.to_s.empty?
+      @errors << {message: "Number of seats cannot be empty.", variable: "num_seats"}
+    elsif num_seats.is_a? Integer
+      if num_seats < 1
+        @errors << {message: "Number of seats must be a number greater than 0.", variable: "num_seats"}
       end
     else
-      @errors << "Number of seats must be a number." 
+      @errors << {message: "Number of seats must be a number.", variable: "num_seats"}
     end
-    
+
     # check number of staff exists and is an integer > 0
-    @errors << "Number of staff cannot be empty." if num_staff.to_s.empty?
-    if num_staff.is_a? Integer
-      if num_staff < 0
-        @errors << "Number of staff must be greater than 0."
+    if num_staff.to_s.empty?
+      @errors << {message: "Number of staff cannot be empty.", variable: "num_staff"}
+    elsif num_staff.is_a? Integer
+      if num_staff < 1
+        @errors << {message: "Number of staff must be a number greater than 0.", variable: "num_staff"}
       end
     else
-      @errors << "Number of staff must be a number." 
+      @errors << {message: "Number of staff must be a number.", variable: "num_staff"}
     end
-    
-    # check number of time slots to make sure they exist and are valid
-    @errors << "Number of time slots cannot be empty." if num_time_slots.to_s.empty?
-    if num_time_slots.is_a? Integer
-      if !valid_num_time_slots?
-        @errors << "You cannot have more possible time slots than are available in the day."
-      end
-    else
-      @errors << "Number of staff must be a number." 
-    end
-    
+    # returns whether @errors is empty
+    @errors.empty?
   end
-  
-  # saves record if data is valid or returns false
-  #
-  # returns Truthy if saved or false if not saved
-  def save_record
-    if valid_data?
-      #call from the module
-      save
-    else
-      false
-    end
-  end
-  
-  # updates record if data is valid or returns false
-  #
-  # returns Truthy if saved or false if not saved
-  def update_record
-    if valid_data?
-      #call from the module
-      update
-    else
-      false
-    end
-  end
-  
-  def update_field(field_name, field_value)
-    if valid_data?
   
 end

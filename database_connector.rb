@@ -60,13 +60,25 @@ module DatabaseConnector
     # end
     ##########
     
+    # meant to be written over in each class with a valid method
+    # checks before deleting if it is a foreign key in another table
+    # 
+    # returns Boolean
+    def ok_to_delete?(id)
+      true
+    end
+    
     # deletes the record matching the primary key
     #
     # key_id             - Integer of the value of the record you want to delete
     #
     # returns nothing
-    def delete_record(key_id)
-      CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE id = #{key_id};")
+    def delete_record(id)
+      if ok_to_delete?(id)
+        CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE id = #{id};")
+      else
+        false
+      end
     end
 
     # returns all records in database
@@ -154,18 +166,22 @@ module DatabaseConnector
   
   # returns an Array of the database_field_names for SQL
   def database_field_names
-    attributes = []
-    instance_variables.each do |i|
-      unless i == "@id".to_sym
-        attributes << i.to_s.delete("@")
-      end
-    end
+    attributes = instance_variables.collect{|a| a.to_s.gsub(/@/,'')}
+    attributes.delete("id")
     attributes
+    # attributes = []
+    # instance_variables.each do |i|
+    #   unless i == "@id".to_sym
+    #     attributes << i.to_s.delete("@")
+    #   end
+    # end
+    # attributes
   end
   
   #string of field names
   def string_field_names
-    database_field_names.join(', ')
+   # database_field_names.join(', ')
+    database_field_names.to_s[1...-1]
   end
   
   
@@ -174,21 +190,21 @@ module DatabaseConnector
   # returns an Array with strings already added
   def self_values
     self_values = []
-    database_field_names.each do |params|
-      unless params == "id"
-        value = self.send(params)
-        if value.is_a? String
-          value = add_quotes_to_string(value)
-        end
-        self_values << value
-      end
-    end
-    self_values
+    database_field_names.each { |param| self_values << self.send(param)}
+    # database_field_names.each do |params|
+    #     value = self.send(params)
+    #     if value.is_a? String
+    #       value = add_quotes_to_string(value)
+    #     end
+    #     self_values << value
+    # end
+    # self_values
   end
   
   # string of this object's parameters for SQL
   def stringify_self
-    self_values.join(", ")
+    #self_values.to_s[1...-1]
+    self_values.join(', ')
   end
   
   # string of the object's parameters = to their values
@@ -198,6 +214,14 @@ module DatabaseConnector
   def parameters_and_values_sql_string
     #first get an array of equal signs
     c = Array.new(self_values.length, "=")
+    self_values.collect do |x|
+      if x.is_a? String
+        x = "'x'"
+      else
+        x = x
+      end
+    end
+    
     final_array = []
     # Then zip all three arrays together
     # Ex.  field_names  =[p1, p2, p3] 
@@ -220,26 +244,39 @@ module DatabaseConnector
     ! @id == ""
   end
   
+  # meant to be written over in each class with a valid method
+  #
+  # returns Boolean
+  def valid?
+    true
+  end
+  
   # creates a new record in the table for this object
   #
-  # returns Integer or nothing
+  # returns Integer or false
   def save_record
-   if !saved_already?
-      CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
-      @id = CONNECTION.last_insert_row_id
-   else
-      update_record
-   end
+   if valid?
+      if !saved_already?
+        CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
+        @id = CONNECTION.last_insert_row_id
+      else
+        update_record
+      end
+      @id
+    else
+      false
+    end
   end
   
   # updates all values (except ID) in the record
   #
-  # returns nothing
+  # returns false if not saved
   def update_record
-    if change_value.is_a? String
-      change_value = add_quotes_to_string(change_value)
+    if valid?
+      CONNECTION.execute("UPDATE #{table} SET #{parameters_and_values_sql_string} WHERE id = #{@id};")
+    else
+      false
     end
-    CONNECTION.execute("UPDATE #{table} SET #{parameters_and_values_sql_string} WHERE id = #{@id};")
   end
   
   # updates the field of one column if records meet criteria
@@ -247,12 +284,16 @@ module DatabaseConnector
   # change_field            - String of the change field
   # change_value            - Value (Integer or String) to change in the change field
   #
-  # returns nothing
+  # returns fales if not saved
   def update_field(change_field, change_value)
     if change_value.is_a? String
       change_value = add_quotes_to_string(change_value)
     end
-    CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE id = #{@id};")
+    if valid?
+      CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE id = #{@id};")
+    else
+      false
+    end
   end
   
   # returns the result of an array where field_name = field_value

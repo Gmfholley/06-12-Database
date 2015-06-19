@@ -189,9 +189,17 @@ class DatabaseDriver
     if type_of_field_in_database(class_name, choice) == "INTEGER"
       new_value = new_value.to_i
     end
+    object.method(choice + "=").call(new_value)
     
     try_to_update_database{
-      object.update_record(choice, new_value)
+      if object.update_field(choice, new_value)
+        puts "Updated database."
+      else
+        puts "Not saved for the following reason(s):"
+        object.errors.each do |e|
+          puts "\tError with #{e[:variable]}: #{e[:message]}"
+        end
+      end
     }
     call_method(next_method_to_call)
   end
@@ -223,7 +231,11 @@ class DatabaseDriver
     next_method_to_call = args[1]
     delete_loc = user_choice_of_object_in_class(class_name)
     try_to_update_database{
-      class_name.delete_record(delete_loc.id)
+      if class_name.delete_record(delete_loc.id)
+        puts "Deleted."
+      else
+        puts "Not deleted.  This object id exists in another table."
+      end
     }
     call_method(next_method_to_call)
   end
@@ -258,11 +270,15 @@ class DatabaseDriver
     time_slots = get_user_input("How many movies can play a day?  Max of 6").to_i
     
     l = Location.new(name: name, num_seats: seats, num_staff: staff, num_time_slots: time_slots)
-    while !l.valid_num_time_slots
-      time_slots = get_user_input("Invalid response.  Must be between 0 and #{l.max_num_time_slots}").to_i
-    end  
     try_to_update_database { 
-      l.save_record
+      if l.save_record
+        puts "Saved to the database."
+      else
+        puts "Not saved for the following reason(s):"
+        l.errors.each do |e|
+          puts "\tError with #{e[:variable]}: #{e[:message]}"
+        end
+      end
     }
     theatre_menu
   end
@@ -292,7 +308,8 @@ class DatabaseDriver
   
   
   ############Show Methods
-  # displays all time-theatre combinations to the screen
+  # displays all objects of this class to the screen
+  # this works if the Class has the database_connector module included/extended
   #
   # args - Array containing class_name in first slot and next method to call in its second slot
   #
@@ -307,9 +324,10 @@ class DatabaseDriver
   
   private
   
-  # accepts a Class and returns an instance of the object from the database that the user selects
+  # accepts a Class, creates a menu of all instances of that object from the database, and returns an instance of the object from the database that the user selects
+  # requires the DatabaseConnector module to be used
   #
-  # class_object - Class object
+  # class_object - Class object (like Movie or Student)
   #
   # returns an instance of the object
   def user_choice_of_object_in_class(class_object)
@@ -322,7 +340,8 @@ class DatabaseDriver
     return run_menu(create_menu)[0]
   end
   
-  # returns the field name that the user wants to change
+  # Creates a menu and returns the field name that the user wants to change
+  # requires the DatabaseConnector module to be used on the object
   #
   # returns a String of the field name
   def user_choice_of_field(object)
@@ -349,6 +368,7 @@ class DatabaseDriver
     false
   end
   
+  
   # meant to be run with a block
   # tries to update the database or sends the user an error message
   #
@@ -356,7 +376,6 @@ class DatabaseDriver
   def try_to_update_database
     begin
       yield
-      puts "Saved to the database."
     rescue Exception => msg
       puts "Not saved: #{msg}"
     end
@@ -370,7 +389,7 @@ class DatabaseDriver
     menu.menu_items.each_with_index { |item| puts "#{item.key_user_returns}.\t #{item.user_message}" }
   end
   
-  # displays menu and gets user response until user quits or selects a menu item
+  # displays menu a nd gets user response until user quits or selects a menu item
   #
   # returns menu_items's command of what to run
   def run_menu(menu)
