@@ -3,7 +3,8 @@ require_relative 'database_connector.rb'
 class Time
   include DatabaseConnector
 
-  attr_reader :time_slot, :id
+  attr_reader :id, :errors
+  attr_accessor :time_slot
 
   
   def initialize(args)
@@ -18,6 +19,9 @@ class Time
     LocationTime.where_match("timeslot_id", id, "==")
   end
   
+  # returns self as string
+  #
+  # returns String
   def to_s
     "id: #{id}\t\ttime slot: #{time_slot}"
   end
@@ -33,5 +37,32 @@ class Time
     end
     sum
   end
+  
+  # returns Boolean if ok to delete
+  #
+  # id - Integer of the id to delete
+  #
+  # returns Boolean
+  def self.ok_to_delete?(id)
+    if LocationTime.where_match("timeslot_id", id, "==").length > 0
+        false
+    else
+        true
+    end
+  end
+  
+  # returns Boolean if data is valid
+  #
+  # returns Boolean
+  def valid?
+    @errors = []
+    # check thename exists and is not empty
+    if time_slot.empty?
+      @errors << {message: "Time slot cannot be empty.", variable: "time_slot"}
+    end
+    
+    @errors.empty?
+  end
+  
   
 end
