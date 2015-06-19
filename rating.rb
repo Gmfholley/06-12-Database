@@ -7,6 +7,14 @@ class Rating
   attr_reader :id
   attr_accessor :rating
   
+  
+  # initializes a Rating id
+  #
+  # optional Hash argument
+  #         rating  - String of the rating
+  #         id      - Integer of the id
+  #
+  # returns an instance of the object
   def initialize(args={})
     @id = args["id"] || ""
     @rating = args[:rating] || args["rating"]
