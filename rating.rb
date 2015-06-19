@@ -17,6 +17,12 @@ class Rating
     "id: #{id}\t\tname: #{rating}"
   end
   
+  
+  # returns Boolean if ok to delete
+  #
+  # id - Integer of the id to delete
+  #
+  # returns Boolean
   def self.ok_to_delete?(id)
     if Movie.where_match("rating_id", id, "==").length > 0
         false
@@ -25,6 +31,9 @@ class Rating
     end
   end
   
+  # returns Boolean if data is valid
+  #
+  # returns Boolean
   def valid?
     @errors = []
     # check thename exists and is not empty

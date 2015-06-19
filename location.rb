@@ -62,6 +62,11 @@ class Location
     
   end
   
+  # returns a Boolean if ok to delete
+  #
+  # id - Integer of the id to delete
+  #
+  # returns Boolean
   def self.ok_to_delete?(id)
     if LocationTime.where_match("location_id", id, "==").length > 0
         false

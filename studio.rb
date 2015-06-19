@@ -29,6 +29,8 @@ class Studio
   
   # returns a Boolean if it is ok to delete
   #
+  # id - Integer of the Record id
+  #
   # returns Boolean
   def self.ok_to_delete?(id)
     if Movie.where_match("studio_id", id, "==").length > 0
