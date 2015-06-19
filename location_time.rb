@@ -6,10 +6,9 @@ require_relative 'database_connector.rb'
 
 class LocationTime
   include DatabaseConnector
-  alias_method :save, :save_record 
   
-  attr_reader :location_id, :timeslot_id, :movie_id, :num_tickets_sold
-
+  attr_accessor :movie_id, :num_tickets_sold
+  attr_reader :location_id, :timeslot_id, :errors
   # initializes object
   #
   # args -      Options Hash
@@ -19,7 +18,7 @@ class LocationTime
   #             movie_id          - Integer of the movie_id in movies table
   #             num_tickets_sold  - Integer of the number of tickets sold for this time slot
   #
-  def initialize(args)
+  def initialize(args={})
     @location_id = args[:location_id] || args["location_id"]
     @timeslot_id = args[:timeslot_id] || args["timeslot_id"]
     @movie_id = args[:movie_id] || args["movie_id"]
@@ -80,27 +79,63 @@ class LocationTime
     LocationTime.where_match("location_id", @location_id, "==")
   end
 
-  # saves record with Module's reord if condition met
-  # overwrites Modules save_record method
+
+  # returns Boolean if objects are valid
   #
-  # returns Boolean 
-  def save_record
-    if Location.create_from_database(location_id).has_available_time_slot?
-      save
-      true
-    else
-      false
+  # returns Boolean
+  def valid?
+    @errors = []
+    # check thename exists and is not empty
+   
+    # check the description exists and is not empty
+    if timeslot_id.to_s.empty?
+      @errors << {message: "Timeslot id cannot be empty.", variable: "timeslot_id"}
+    elsif timeslot.empty?
+      @errors << {message: "Timeslot id must be a member of the times table.", variable: "timeslot_id"}
+    end      
+    
+    # check the description exists and is not empty
+    if location_id.to_s.empty?
+      @errors << {message: "Location id cannot be empty.", variable: "location_id"}
+    elsif location.empty?
+      @errors << {message: "Location id must be a member of the locations table.", variable: "location_id"}
     end
+    
+    # check the description exists and is not empty
+    if movie_id.to_s.empty?
+      @errors << {message: "Movie id cannot be empty.", variable: "movie_id"}
+    elsif movie.empty?
+      @errors << {message: "Movie id must be a member of the movies table.", variable: "movie_id"}
+    end
+    
+    # checks the number of time slots
+    if num_tickets_sold.to_s.empty?
+      @errors << {message: "Num_tickets_sold cannot be empty.", variable: "num_tickets_sold"}
+    elsif num_tickets_sold.is_a? Integer
+      if num_tickets_sold < 0
+        @errors << {message: "Num_tickets_sold must be greater than 0.", variable: "num_tickets_sold"}
+      end
+    else
+      @errors << {message: "Num_tickets_sold must be a number.", variable: "num_tickets_sold"}
+    end
+  
+    # returns whether @errors is empty
+    @errors.empty?
   end
+  
   
   # overwrites Modules update_record method because this object has a composite key
   #
-  # returns Boolean
+  # returns false if not updated successfully
   def update_record(change_field, change_value)
     if change_value.is_a? String
       change_value = add_quotes_to_string(change_value)
     end
-    CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE location_id = #{@location_id} AND timeslot_id = #{@timeslot_id};")
+    if valid?
+      CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE location_id = #{@location_id} AND timeslot_id = #{@timeslot_id};")
+    else
+      false
+    end
   end
   
   # returns an Array of objects of all movies at this location
@@ -126,7 +161,9 @@ class LocationTime
     LocationTime.where_match("num_tickets_sold", num_tickets, ">")
   end
   
-  
+  # returns Array of objects of the sold out or not sold out LocationTimes
+  #
+  # returns an Array
   def self.where_sold_out(sold_out=true)
     if sold_out
      LocationTime.as_objects(CONNECTION.execute("SELECT * FROM locationtimes locationtime LEFT OUTER JOIN locations location ON location.id = locationtime.location_id WHERE location.num_seats <= locationtime.num_tickets_sold;"))
@@ -140,9 +177,13 @@ class LocationTime
   # location_id     - Integer of the location_id part of the composite key
   # timeslot_id     - Integer of the timeslot_id part of the composite key
   #
-  # returns nothing
+  # returns Array if deleted, false if not successful
   def self.delete_record(location_id, timeslot_id)
-    CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND timeslot_id == #{timeslot_id}")
+    if ok_to_delete?
+      CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND timeslot_id == #{timeslot_id}")
+    else
+      false
+    end
   end
   
   # overwrites DatabaseConnector Module method because this Class has a composite key
