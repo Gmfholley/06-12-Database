@@ -29,9 +29,9 @@ class RatingTest < Minitest::Test
     assert_equal(Rating, Rating.all.first.class)
   end
   
+  # tests true above in crud
   def test_ok_to_delete
     assert_equal(false, Rating.ok_to_delete?(3))
-    
   end
   
   def test_valid
