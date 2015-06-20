@@ -1,5 +1,6 @@
 require_relative 'database_connector.rb'
 
+
 class Rating
   include DatabaseConnector
   
