@@ -23,27 +23,34 @@ class Location
     @num_time_slots = args[:num_time_slots] || args["num_time_slots"]
     @errors = []
   end
-
-  def to_s
-    "id: #{id}\tname: #{name}\tnumber of seats: #{num_seats}\tnumber of staff: #{num_staff}\tnumber of movies played a day: #{num_time_slots}"
-  end
   
-  def max_num_time_slots
+  # returns Integer of the maximum number of time slots allowed
+  #
+  # returns Integer
+  def self.max_num_time_slots
     CONNECTION.execute("SELECT COUNT(*) FROM times;").first[0]
   end  
+  
+  # returns an Array of Locations that are available (ie - can be booked)
+  #
+  # returns Array
+  def self.where_available(available=true)
+    if available
+      Location.as_objects(CONNECTION.execute("SELECT COUNT(*) Loc, *  FROM locationtimes INNER JOIN 
+      locations ON locationtimes.location_id = locations.id GROUP BY locations.id, locations.name HAVING 
+      COUNT(*) < locations.num_time_slots;"))
+    else
+      Location.as_objects(CONNECTION.execute("SELECT COUNT(*) Loc, *  FROM locationtimes INNER JOIN 
+      locations ON locationtimes.location_id = locations.id GROUP BY locations.id, locations.name HAVING  
+      COUNT(*) >= locations.num_time_slots;"))
+   end 
+  end
        
   # returns a Boolean if this location has available time slots
   #    
   # returns Boolean
   def has_available_time_slot?
-    self.all_time_slots.length < num_time_slots
-  end
-  
-  # returns an Array of LocationtTime objects in this location
-  #
-  # returns an Array
-  def all_time_slots
-    LocationTime.where_match("location_id", id, "==")
+    self.location_times.length < num_time_slots
   end
   
   # returns Array of all the location-times for this movie
@@ -51,18 +58,6 @@ class Location
   # returns Array
   def location_times
     LocationTime.where_match("location_id", id, "==")
-  end
-  
-  # returns an Array of Locations that are available (ie - can be booked)
-  #
-  # returns Array
-  def self.where_available(available=true)
-    if available
-     Location.as_objects(CONNECTION.execute("SELECT COUNT(*) Loc, *  FROM locationtimes INNER JOIN locations ON locationtimes.location_id = locations.id GROUP BY locations.id, locations.name HAVING COUNT(*) < locations.num_time_slots;"))
-   else
-     Location.as_objects(CONNECTION.execute("SELECT COUNT(*) Loc, *  FROM locationtimes INNER JOIN locations ON locationtimes.location_id = locations.id GROUP BY locations.id, locations.name HAVING COUNT(*) >= locations.num_time_slots;"))
-   end
-    
   end
   
   # returns a Boolean if ok to delete
@@ -84,7 +79,7 @@ class Location
   def valid?
     @errors = []
     # check thename exists and is not empty
-    if name.empty?
+    if name.to_s.empty?
       @errors << {message: "Name cannot be empty.", variable: "name"}
     end
     
@@ -92,8 +87,8 @@ class Location
     if num_time_slots.to_s.empty?
       @errors << {message: "Number of time slots cannot be empty.", variable: "num_time_slots"}
     elsif num_time_slots.is_a? Integer
-      if num_time_slots > max_num_time_slots || num_time_slots < 0
-        @errors << {message: "You must have between 0 and #{max_num_time_slots}.", variable: "num_time_slots"}
+      if num_time_slots > Location.max_num_time_slots || num_time_slots < 0
+        @errors << {message: "You must have between 0 and #{Location.max_num_time_slots}.", variable: "num_time_slots"}
       end
     else
       @errors << {message: "Number of staff must be a number.", variable: "num_time_slots"}

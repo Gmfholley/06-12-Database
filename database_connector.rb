@@ -196,14 +196,19 @@ module DatabaseConnector
   def self_values
     self_values = []
     database_field_names.each { |param| self_values << self.send(param)}
-    # database_field_names.each do |params|
-    #     value = self.send(params)
-    #     if value.is_a? String
-    #       value = add_quotes_to_string(value)
-    #     end
-    #     self_values << value
-    # end
     self_values
+  end
+  
+  def quoted_string_self_values
+    vals = []
+    self_values.each do |x|
+      if x.is_a? String
+        vals << add_quotes_to_string(x)
+      else
+        vals << x
+      end
+    end
+    vals
   end
   
   # string of this object's parameters for SQL
@@ -219,21 +224,13 @@ module DatabaseConnector
   def parameters_and_values_sql_string
     #first get an array of equal signs
     c = Array.new(self_values.length, "=")
-    self_values.collect do |x|
-      if x.is_a? String
-        x = "'x'"
-      else
-        x = x
-      end
-    end
-    
     final_array = []
     # Then zip all three arrays together
     # Ex.  field_names  =[p1, p2, p3] 
     #      c            = ["=", "=", "="]
     #      self_values  = [1, 3, "'string'"]
     #  zip =>            [[[p1, "="], 1], [[p2, "="], 3, [[p3, "="], "'string'"]]
-    zip_array = database_field_names.zip(c).zip(self_values)
+    zip_array = database_field_names.zip(c).zip(quoted_string_self_values)
     zip_array.each do |row|
       #             =>  [["p1 = 1"], ["p2 = 3"], ["p3 = 'string'"]]
       final_array <<  row.flatten.join(" ")
@@ -263,6 +260,7 @@ module DatabaseConnector
     if !saved_already?
       if valid?
         CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
+        @id = CONNECTION.last_insert_row_id
       else
         false
       end
