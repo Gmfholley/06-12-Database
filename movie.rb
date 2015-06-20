@@ -8,7 +8,7 @@ class Movie
   include DatabaseConnector
   
   attr_accessor :name, :description, :length, :studio_id, :rating_id
-  attr_reader :id
+  attr_reader :id, :errors
   
   # initializes object
   #
@@ -87,23 +87,23 @@ class Movie
     end
     
     # check the description exists and is not empty
-    if studio_id.empty?
+    if studio_id.to_s.empty?
       @errors << {message: "Studio id cannot be empty.", variable: "studio_id"}
-    elsif studio.empty?
+    elsif studio.blank?
       @errors << {message: "Studio id must be a member of the studios table.", variable: "studio_id"}
     end      
     
     # check the description exists and is not empty
-    if rating_id.empty?
+    if rating_id.to_s.empty?
       @errors << {message: "Rating id cannot be empty.", variable: "rating_id"}
-    elsif rating.empty?
+    elsif rating.blank?
       @errors << {message: "Rating id must be a member of the ratings table.", variable: "rating_id"}
     end
     
     # checks the number of time slots
     if length.to_s.empty?
       @errors << {message: "Length cannot be empty.", variable: "length"}
-    elsif ! length.is_a? Integer
+    elsif length.is_a? Integer
       if length < 0
         @errors << {message: "Length must be greater than 0.", variable: "length"}
       end

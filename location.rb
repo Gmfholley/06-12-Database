@@ -3,8 +3,8 @@ require_relative 'database_connector.rb'
 class Location
   include DatabaseConnector
   
-  attr_reader :id
-  attr_accessor :name, :num_seats, :num_staff, :num_time_slots, :errors
+  attr_reader :id, :errors
+  attr_accessor :name, :num_seats, :num_staff, :num_time_slots
 
   # initializes object
   #
@@ -53,6 +53,9 @@ class Location
     LocationTime.where_match("location_id", id, "==")
   end
   
+  # returns an Array of Locations that are available (ie - can be booked)
+  #
+  # returns Array
   def self.where_available(available=true)
     if available
      Location.as_objects(CONNECTION.execute("SELECT COUNT(*) Loc, *  FROM locationtimes INNER JOIN locations ON locationtimes.location_id = locations.id GROUP BY locations.id, locations.name HAVING COUNT(*) < locations.num_time_slots;"))

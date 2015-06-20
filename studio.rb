@@ -4,8 +4,8 @@ require_relative 'database_connector.rb'
 class Studio
   include DatabaseConnector
   
-  attr_writer :name
-  attr_reader :id
+  attr_accessor :name
+  attr_reader :id, :errors
 
   
   # Initializes Studio object
