@@ -1,6 +1,6 @@
 require_relative 'database_connector.rb'
 
-class Time
+class TimeSlot
   include DatabaseConnector
 
   attr_reader :id, :errors
@@ -31,7 +31,8 @@ class Time
   # returns an Integer
   def num_staff_needed
     sum = 0
-    staff_array = CONNECTION.execute("SELECT SUM(locations.num_staff) FROM locationtimes INNER JOIN times ON locationtimes.timeslot_id = times.id INNER JOIN locations ON locationtimes.location_id = locations.id WHERE times.id = #{id} GROUP BY locationtimes.location_id;")
+    
+    staff_array = CONNECTION.execute("SELECT SUM(locations.num_staff) FROM locationtimes INNER JOIN timeslots ON locationtimes.timeslot_id = timeslots.id INNER JOIN locations ON locationtimes.location_id = locations.id WHERE timeslots.id = #{id} GROUP BY locationtimes.location_id;")
     staff_array.each do |hash|
       sum += hash["SUM(locations.num_staff)"]
     end
@@ -58,7 +59,7 @@ class Time
     @errors = []
     # check thename exists and is not empty
     if time_slot.to_s.empty?
-      @errors << {message: "Time slot cannot be empty.", variable: "time_slot"}
+      @errors << {message: "TimeSlot slot cannot be empty.", variable: "time_slot"}
     end
     
     @errors.empty?

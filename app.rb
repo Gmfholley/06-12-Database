@@ -134,7 +134,7 @@ class DatabaseDriver
   end
   
   def get_all_movies_for_this_time
-    chosen_time = user_choice_of_object_in_class(Time)
+    chosen_time = user_choice_of_object_in_class(TimeSlot)
     puts chosen_time.location_times
     analyze_menu
   end
@@ -173,7 +173,7 @@ class DatabaseDriver
   #
   # runs the analyze menu
   def get_num_staff_needed
-    time_loc = user_choice_of_object_in_class(Time)
+    time_loc = user_choice_of_object_in_class(TimeSlot)
     puts "You will need #{time_loc.num_staff_needed} staff for that time."
     analyze_menu
   end
@@ -259,7 +259,7 @@ class DatabaseDriver
       is_available = loc.has_available_time_slot?
       puts "That theatre is fully booked.  Try again." if !is_available
     end
-    time = user_choice_of_object_in_class(Time)
+    time = user_choice_of_object_in_class(TimeSlot)
     movie = user_choice_of_object_in_class(Movie)
     l = LocationTime.new(location_id: loc.id, timeslot_id: time.id, movie_id: movie.id)
     if l.saved_already?

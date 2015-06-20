@@ -28,7 +28,7 @@ class Location
   #
   # returns Integer
   def self.max_num_time_slots
-    CONNECTION.execute("SELECT COUNT(*) FROM times;").first[0]
+    CONNECTION.execute("SELECT COUNT(*) FROM timeslots;").first[0]
   end  
   
   # returns an Array of Locations that are available (ie - can be booked)

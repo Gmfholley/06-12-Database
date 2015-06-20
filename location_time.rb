@@ -44,7 +44,7 @@ class LocationTime
   #
   # returns Integer
   def timeslot
-    t = Time.create_from_database(timeslot_id)
+    t = TimeSlot.create_from_database(timeslot_id)
     t.time_slot
   end
   
@@ -88,9 +88,9 @@ class LocationTime
     # check thename exists and is not empty
     # check the description exists and is not empty
     if timeslot_id.to_s.empty?
-      @errors << {message: "Timeslot id cannot be empty.", variable: "timeslot_id"}
+      @errors << {message: "TimeSlotslot id cannot be empty.", variable: "timeslot_id"}
     elsif timeslot.blank?
-      @errors << {message: "Timeslot id must be a member of the times table.", variable: "timeslot_id"}
+      @errors << {message: "TimeSlotslot id must be a member of the times table.", variable: "timeslot_id"}
     end      
     
     # check the description exists and is not empty
