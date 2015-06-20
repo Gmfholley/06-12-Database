@@ -24,6 +24,7 @@ class RatingTest < Minitest::Test
     assert_equal(Fixnum, r.save_record.class)
     r.rating = "Pur"
     assert_equal(Array, r.update_record.class)
+    assert_equal(true, Rating.ok_to_delete?(r.id))
     assert_equal(Array, Rating.delete_record(r.id).class)
     assert_equal(Rating, Rating.all.first.class)
   end
