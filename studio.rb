@@ -46,7 +46,7 @@ class Studio
   def valid?
     @errors = []
     # check thename exists and is not empty
-    if name.empty?
+    if name.to_s.empty?
       @errors << {message: "Name cannot be empty.", variable: "name"}
     end
     
