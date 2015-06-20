@@ -16,13 +16,13 @@ class LocationTime
   #             location_id       - Integer of the location_id in the locations table
   #             timeslot_id       - Integer of the timeslot_id in timeslots table
   #             movie_id          - Integer of the movie_id in movies table
-  #             num_tickets_sold  - Integer of the number of tickets sold for this time slot
+  #             num_tickets_sold  - Integer of the number of tickets sold for this time slot - Defaults to 0
   #
   def initialize(args={})
     @location_id = args[:location_id] || args["location_id"]
     @timeslot_id = args[:timeslot_id] || args["timeslot_id"]
     @movie_id = args[:movie_id] || args["movie_id"]
-    @num_tickets_sold = args["num_tickets_sold"] || 0
+    @num_tickets_sold = args[:num_tickets_sold] || args["num_tickets_sold"] || 0
   end
   
   # returns the String representation of the time slot
@@ -36,7 +36,7 @@ class LocationTime
   #
   # returns String
   def movie
-    m = Movie.create_from_database(movie_id)
+    m = Movie.create_from_database(movie_id.to_i)
     m.name
   end
   
@@ -44,7 +44,7 @@ class LocationTime
   #
   # returns Integer
   def timeslot
-    t = TimeSlot.create_from_database(timeslot_id)
+    t = TimeSlot.create_from_database(timeslot_id.to_i)
     t.time_slot
   end
   
@@ -52,15 +52,14 @@ class LocationTime
   #
   # returns String
   def location
-    l = Location.create_from_database(location_id)
-    l.name
+    location_object.name
   end
   
   # returns whether tickets are sold out for the location
   #
   # returns Boolean
   def sold_out?
-    l = Location.create_from_database(location_id)
+    l = location_object
     l.num_seats == num_tickets_sold
   end
   
@@ -68,8 +67,16 @@ class LocationTime
   #
   # returns Integer
   def tickets_remaining
-    l = Location.create_from_database(location_id)
-    l.num_seats - num_tickets_sold
+    l = location_object
+    if !l.num_seats.blank?
+      l.num_seats - num_tickets_sold
+    else
+      0
+    end
+  end
+  
+  def location_object
+    l = Location.create_from_database(location_id.to_i)
   end
   
   # returns an Array of objects of all movies at this location
@@ -113,6 +120,9 @@ class LocationTime
     elsif num_tickets_sold.is_a? Integer
       if num_tickets_sold < 0
         @errors << {message: "Num_tickets_sold must be greater than 0.", variable: "num_tickets_sold"}
+      elsif tickets_remaining < 0
+        @errors << {message: "Num_tickets_sold cannot be greater than the number of seats.", variable: 
+          "num_tickets_sold"}
       end
     else
       @errors << {message: "Num_tickets_sold must be a number.", variable: "num_tickets_sold"}
@@ -123,7 +133,6 @@ class LocationTime
   
   
   # overwrites saved_already in this case because the primary key is not created by the database
-  #
   # returns Boolean
   def saved_already?
     ! LocationTime.create_from_database(location_id, timeslot_id).location_id.to_s.empty?
@@ -137,12 +146,26 @@ class LocationTime
   def save_record
     if !saved_already?
       if valid?
-        CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}, timeslot_id, location_id) VALUES (#{stringify_self}, #{timeslot_id}, #{location_id});")
+        CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}, timeslot_id, location_id) VALUES 
+        (#{stringify_self}, #{timeslot_id}, #{location_id});")
       else
         false
       end
     else
       update_record
+    end
+  end
+  
+  # updates all values (except ID) in the record
+  #
+  # returns false if not saved
+  def update_record
+    if valid?
+      query_string = "UPDATE #{table} SET #{parameters_and_values_sql_string} WHERE location_id =     
+      #{location_id} AND timeslot_id = #{timeslot_id};"
+      CONNECTION.execute(query_string)
+    else
+      false
     end
   end
   
@@ -154,7 +177,8 @@ class LocationTime
       change_value = add_quotes_to_string(change_value)
     end
     if valid?
-      CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE location_id = #{@location_id} AND timeslot_id = #{@timeslot_id};")
+      CONNECTION.execute("UPDATE #{table} SET #{change_field} = #{change_value} WHERE location_id = 
+      #{@location_id} AND timeslot_id = #{@timeslot_id};")
     else
       false
     end
@@ -199,9 +223,13 @@ class LocationTime
   # returns an Array
   def self.where_sold_out(sold_out=true)
     if sold_out
-     LocationTime.as_objects(CONNECTION.execute("SELECT * FROM locationtimes locationtime LEFT OUTER JOIN locations location ON location.id = locationtime.location_id WHERE location.num_seats <= locationtime.num_tickets_sold;"))
+     LocationTime.as_objects(CONNECTION.execute("SELECT * FROM locationtimes locationtime LEFT OUTER JOIN 
+     locations location ON location.id = locationtime.location_id WHERE location.num_seats <= 
+     locationtime.num_tickets_sold;"))
    else
-     LocationTime.as_objects(CONNECTION.execute("SELECT * FROM locationtimes locationtime LEFT OUTER JOIN locations location ON location.id = locationtime.location_id WHERE location.num_seats > locationtime.num_tickets_sold;"))
+     LocationTime.as_objects(CONNECTION.execute("SELECT * FROM locationtimes locationtime LEFT OUTER JOIN 
+     locations location ON location.id = locationtime.location_id WHERE location.num_seats > 
+     locationtime.num_tickets_sold;"))
    end
   end
   
@@ -213,7 +241,8 @@ class LocationTime
   # returns Array if deleted, false if not successful
   def self.delete_record(location_id, timeslot_id)
     if ok_to_delete?(location_id)
-      CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND timeslot_id == #{timeslot_id}")
+      CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND 
+      timeslot_id == #{timeslot_id}")
     else
       false
     end
@@ -226,7 +255,8 @@ class LocationTime
   #
   # returns object with this location_id/timeslot_id
   def self.create_from_database(location_id, timeslot_id)
-    rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE location_id = #{location_id} AND timeslot_id = #{timeslot_id};").first
+    rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE location_id = #{location_id} AND 
+    timeslot_id = #{timeslot_id};").first
     if rec.nil?
       self.new()
     else
