@@ -57,7 +57,7 @@ class Time
   def valid?
     @errors = []
     # check thename exists and is not empty
-    if time_slot.empty?
+    if time_slot.to_s.empty?
       @errors << {message: "Time slot cannot be empty.", variable: "time_slot"}
     end
     
