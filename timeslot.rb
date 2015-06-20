@@ -7,9 +7,9 @@ class TimeSlot
   attr_accessor :time_slot
 
   
-  def initialize(args)
+  def initialize(args={})
     @id = args["id"] || ""
-    @time_slot = args[:time] || args["time"]
+    @time_slot = args[:time_slot] || args["time_slot"]
   end
 
   # returns Array of all the location-times for this movie
