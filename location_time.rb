@@ -230,7 +230,7 @@ class LocationTime
     if rec.nil?
       self.new()
     else
-      seslf.new(rec)
+      self.new(rec)
     end
   end
   

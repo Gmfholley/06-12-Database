@@ -1,8 +1,8 @@
 require_relative 'database_connector.rb'
-#
-# CONNECTION=SQLite3::Database.new("movies.db")
-# CONNECTION.results_as_hash = true
-# CONNECTION.execute("PRAGMA foreign_keys = ON;")
+
+CONNECTION=SQLite3::Database.new("movies.db")
+CONNECTION.results_as_hash = true
+CONNECTION.execute("PRAGMA foreign_keys = ON;")
 
 class Movie
   include DatabaseConnector
@@ -28,13 +28,6 @@ class Movie
     @length = args[:length] || args["length"]
   end
   
-  # returns String representing this object's parameters
-  #
-  # returns String
-  def to_s
-    "id:\t#{@id}\t\tname:\t#{name}\t\trating:\t#{rating}\t\tstudio:\t#{studio}\t\tlength:\t#{length}"
-  end
-  
   # returns a Boolean if it is ok to delete
   #
   # id - Integer of the id to delete
@@ -48,11 +41,18 @@ class Movie
     end
   end
   
+  # returns String representing this object's parameters
+  #
+  # returns String
+  def to_s
+    "id:\t#{@id}\t\tname:\t#{name}\t\trating:\t#{rating}\t\tstudio:\t#{studio}\t\tlength:\t#{length}"
+  end
+  
   # returns the rating
   #
   # returns String
   def rating
-    r = Rating.create_from_database(rating_id)
+    r = Rating.create_from_database(rating_id.to_i)
     r.rating
   end
   
@@ -60,7 +60,7 @@ class Movie
   #
   # returns String
   def studio
-    s = Studio.create_from_database(studio_id)
+    s = Studio.create_from_database(studio_id.to_i)
     s.name
   end
   
@@ -77,17 +77,17 @@ class Movie
   def valid?
     @errors = []
     # check thename exists and is not empty
-    if name.empty?
+    if name.to_s.empty?
       @errors << {message: "Name cannot be empty.", variable: "name"}
     end
   
     # check the description exists and is not empty
-    if description.empty?
+    if description.to_s.empty?
       @errors << {message: "Description cannot be empty.", variable: "description"}
     end
     
     # check the description exists and is not empty
-    if studio_id.to_s.empty?
+    if studio_id.to_s.empty?  
       @errors << {message: "Studio id cannot be empty.", variable: "studio_id"}
     elsif studio.blank?
       @errors << {message: "Studio id must be a member of the studios table.", variable: "studio_id"}

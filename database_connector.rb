@@ -274,7 +274,8 @@ module DatabaseConnector
   # returns false if not saved
   def update_record
     if valid?
-      CONNECTION.execute("UPDATE #{table} SET #{parameters_and_values_sql_string} WHERE id = #{@id};")
+      query_string = "UPDATE #{table} SET #{parameters_and_values_sql_string} WHERE id = #{@id};"
+      CONNECTION.execute(query_string)
     else
       false
     end
