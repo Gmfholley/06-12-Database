@@ -1,3 +1,5 @@
+require 'active_support.rb'
+require 'active_support/core_ext/object/blank.rb'
 require_relative 'database_connector.rb'
 require_relative 'location.rb'
 require_relative 'rating.rb'
@@ -183,7 +185,9 @@ class DatabaseDriver
     class_name = args[0]
     next_method_to_call = args[1]
     object = user_choice_of_object_in_class(class_name)
+    binding.pry
     choice = user_choice_of_field(object)
+    binding.pry
     new_value = get_user_input("What should the value of #{choice} be?")
     
     if type_of_field_in_database(class_name, choice) == "INTEGER"
@@ -214,7 +218,11 @@ class DatabaseDriver
   def delete_loc_time
     delete_loc = user_choice_of_object_in_class(LocationTime)
     try_to_update_database{
-      LocationTime.delete_record(delete_loc.location_id, delete_loc.timeslot_id)
+      if LocationTime.delete_record(delete_loc.location_id, delete_loc.timeslot_id)
+        puts "Deleted."
+      else
+        puts "Not deleted.  This object id exists in another table."
+      end
     }
     loc_time_menu
   end
@@ -254,9 +262,20 @@ class DatabaseDriver
     time = user_choice_of_object_in_class(Time)
     movie = user_choice_of_object_in_class(Movie)
     l = LocationTime.new(location_id: loc.id, timeslot_id: time.id, movie_id: movie.id)
-    success = try_to_update_database {
-      l.save_record
+    if l.saved_already?
+      puts "Sorry.  That time slot is already booked.  You can update it in the update menu or try again."
+    else
+      try_to_update_database {
+        if l.save_record
+          puts "Saved to the database."
+        else
+          puts "Not saved for the following reason(s):"
+          l.errors.each do |e|
+            puts "\tError with #{e[:variable]}: #{e[:message]}"
+          end
+        end
     }
+    end
     loc_time_menu
   end
   
@@ -300,8 +319,15 @@ class DatabaseDriver
     rating = user_choice_of_object_in_class(Rating)
     
     try_to_update_database{ 
-      l = Movie.new(name: n, description: d, length: l, rating_id: rating, studio_id: studio)
-      l.save_record
+      l = Movie.new(name: n, description: d, length: l, rating_id: rating.id, studio_id: studio.id)
+      if l.save_record
+        puts "Saved to the database."
+      else
+        puts "Not saved for the following reason(s):"
+        l.errors.each do |e|
+          puts "\tError with #{e[:variable]}: #{e[:message]}"
+        end
+      end
     }
     movie_menu
   end  
@@ -312,7 +338,7 @@ class DatabaseDriver
   # this works if the Class has the database_connector module included/extended
   #
   # args - Array containing class_name in first slot and next method to call in its second slot
-  #
+  ############
   # calls next method
   def show_object(args)
     class_name  = args[0]
@@ -345,8 +371,8 @@ class DatabaseDriver
   #
   # returns a String of the field name
   def user_choice_of_field(object)
-    
     fields = object.database_field_names
+    binding.pry
     create_menu = Menu.new("Which field do you want to update?")
     fields.each_with_index do |field, x|
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: field, do_if_chosen:    

@@ -92,8 +92,12 @@ module DatabaseConnector
     #
     # returns this object's Hash
     def create_from_database(id)
-      rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE id = #{id};")
-      self.new(rec[0])
+      rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE id = #{id};").first
+      if rec.nil?
+        self.new()
+      else
+        self.new(rec)
+      end
     end
     
     # convert Hash records to Objects
@@ -168,6 +172,7 @@ module DatabaseConnector
   def database_field_names
     attributes = instance_variables.collect{|a| a.to_s.gsub(/@/,'')}
     attributes.delete("id")
+    attributes.delete("errors")
     attributes
     # attributes = []
     # instance_variables.each do |i|
@@ -198,13 +203,13 @@ module DatabaseConnector
     #     end
     #     self_values << value
     # end
-    # self_values
+    self_values
   end
   
   # string of this object's parameters for SQL
   def stringify_self
-    #self_values.to_s[1...-1]
-    self_values.join(', ')
+    self_values.to_s[1...-1]
+    #self_values.join(', ')
   end
   
   # string of the object's parameters = to their values
@@ -255,16 +260,14 @@ module DatabaseConnector
   #
   # returns Integer or false
   def save_record
-   if valid?
-      if !saved_already?
+    if !saved_already?
+      if valid?
         CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}) VALUES (#{stringify_self});")
-        @id = CONNECTION.last_insert_row_id
       else
-        update_record
+        false
       end
-      @id
     else
-      false
+      update_record
     end
   end
   

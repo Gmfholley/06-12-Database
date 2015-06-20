@@ -86,25 +86,24 @@ class LocationTime
   def valid?
     @errors = []
     # check thename exists and is not empty
-   
     # check the description exists and is not empty
     if timeslot_id.to_s.empty?
       @errors << {message: "Timeslot id cannot be empty.", variable: "timeslot_id"}
-    elsif timeslot.empty?
+    elsif timeslot.blank?
       @errors << {message: "Timeslot id must be a member of the times table.", variable: "timeslot_id"}
     end      
     
     # check the description exists and is not empty
     if location_id.to_s.empty?
       @errors << {message: "Location id cannot be empty.", variable: "location_id"}
-    elsif location.empty?
+    elsif location.blank?
       @errors << {message: "Location id must be a member of the locations table.", variable: "location_id"}
     end
     
     # check the description exists and is not empty
     if movie_id.to_s.empty?
       @errors << {message: "Movie id cannot be empty.", variable: "movie_id"}
-    elsif movie.empty?
+    elsif movie.blank?
       @errors << {message: "Movie id must be a member of the movies table.", variable: "movie_id"}
     end
     
@@ -118,16 +117,40 @@ class LocationTime
     else
       @errors << {message: "Num_tickets_sold must be a number.", variable: "num_tickets_sold"}
     end
-  
+    binding.pry
     # returns whether @errors is empty
     @errors.empty?
   end
   
   
+  # overwrites saved_already in this case because the primary key is not created by the database
+  #
+  # returns Boolean
+  def saved_already?
+    ! LocationTime.create_from_database(location_id, timeslot_id).location_id.to_s.empty?
+  end
+  
+  # creates a new record in the table for this object
+  # overwrites save_record because it has a composite key
+  #
+  #
+  # returns Integer or false
+  def save_record
+    if !saved_already?
+      if valid?
+        CONNECTION.execute("INSERT INTO #{table} (#{string_field_names}, timeslot_id, location_id) VALUES (#{stringify_self}, #{timeslot_id}, #{location_id});")
+      else
+        false
+      end
+    else
+      update_record
+    end
+  end
+  
   # overwrites Modules update_record method because this object has a composite key
   #
   # returns false if not updated successfully
-  def update_record(change_field, change_value)
+  def update_field(change_field, change_value)
     if change_value.is_a? String
       change_value = add_quotes_to_string(change_value)
     end
@@ -152,6 +175,17 @@ class LocationTime
     LocationTime.where_match("movie_id", @movie_id, "==")
   end
   
+  # overwrites database_connector method because this has a composite id
+  # returns an Array of field names for this object
+  #
+  # returns an Array
+  def database_field_names
+    attributes = instance_variables.collect{|a| a.to_s.gsub(/@/,'')}
+    attributes.delete("location_id")
+    attributes.delete("timeslot_id")
+    attributes.delete("errors")
+    attributes
+  end
   # returns all Locations with tickets greater than the number of tickets
   #
   # num_tickets    - Integer of the number of tickets sold
@@ -179,7 +213,7 @@ class LocationTime
   #
   # returns Array if deleted, false if not successful
   def self.delete_record(location_id, timeslot_id)
-    if ok_to_delete?
+    if ok_to_delete?(location_id)
       CONNECTION.execute("DELETE FROM #{self.to_s.pluralize} WHERE location_id == #{location_id} AND timeslot_id == #{timeslot_id}")
     else
       false
@@ -193,8 +227,12 @@ class LocationTime
   #
   # returns object with this location_id/timeslot_id
   def self.create_from_database(location_id, timeslot_id)
-    rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE location_id = #{location_id} AND timeslot_id = #{timeslot_id};")
-    self.new(rec[0])
+    rec = CONNECTION.execute("SELECT * FROM #{self.to_s.pluralize} WHERE location_id = #{location_id} AND timeslot_id = #{timeslot_id};").first
+    if rec.nil?
+      self.new()
+    else
+      seslf.new(rec)
+    end
   end
   
 end
