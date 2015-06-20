@@ -185,9 +185,9 @@ class DatabaseDriver
     class_name = args[0]
     next_method_to_call = args[1]
     object = user_choice_of_object_in_class(class_name)
-    binding.pry
+    
     choice = user_choice_of_field(object)
-    binding.pry
+    
     new_value = get_user_input("What should the value of #{choice} be?")
     
     if type_of_field_in_database(class_name, choice) == "INTEGER"
@@ -372,7 +372,7 @@ class DatabaseDriver
   # returns a String of the field name
   def user_choice_of_field(object)
     fields = object.database_field_names
-    binding.pry
+    
     create_menu = Menu.new("Which field do you want to update?")
     fields.each_with_index do |field, x|
       create_menu.add_menu_item({key_user_returns: x + 1, user_message: field, do_if_chosen:    

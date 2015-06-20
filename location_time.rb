@@ -117,7 +117,6 @@ class LocationTime
     else
       @errors << {message: "Num_tickets_sold must be a number.", variable: "num_tickets_sold"}
     end
-    binding.pry
     # returns whether @errors is empty
     @errors.empty?
   end
